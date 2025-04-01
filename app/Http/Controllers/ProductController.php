@@ -18,20 +18,8 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::where('products.status', '!=', 0)
-            ->join('product_category', 'products.id', '=', 'product_category.product_id')
-            ->join('categories', 'product_category.category_id', '=', 'categories.id')
-            ->join('brands', 'products.brand_id', '=', 'brands.id')
-            ->with('images')
+            ->with(['categories:id,name', 'brand:id,name', 'images'])
             ->orderBy('products.created_at', 'DESC')
-            ->select(
-                "products.id",
-                "categories.id as category_id",
-                "products.name",
-                "categories.name as catname",
-                "brands.name as brandname",
-                "products.status",
-                "products.price"
-            )
             ->get();
 
         return response()->json([
@@ -40,24 +28,13 @@ class ProductController extends Controller
             'products' => $products
         ]);
     }
+
     public function trash()
     {
         $products = Product::where('products.status', '=', 0)
-            ->join('product_category', 'products.id', '=', 'product_category.product_id')
-            ->join('categories', 'product_category.category_id', '=', 'categories.id')
-            ->join('brands', 'products.brand_id', '=', 'brands.id')
-            ->with('images')
+            ->with(['categories:id,name', 'brand:id,name', 'images'])
             ->orderBy('products.created_at', 'DESC')
-            ->select(
-                "products.id",
-                "products.name",
-                "categories.name as category_name",
-                "brands.name as brand_name",
-                "products.status",
-                "products.price"
-            )
             ->get();
-
         return response()->json([
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -67,7 +44,7 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with('images')->find($id);
+        $product = Product::with(['categories:id,name', 'brand:id,name', 'images'])->find($id);
         if ($product == null) {
             $result = [
                 'status' => false,
@@ -92,19 +69,28 @@ class ProductController extends Controller
         $product->description = $request->description;
         $product->created_at = now();
         $product->status = $request->status;
+        $product->created_by = 1;
 
         if ($product->save()) {
-            // 🟢 Giải mã JSON nếu `category_id` là chuỗi
-            $categoryIds = is_string($request->category_id) 
-                ? json_decode($request->category_id, true) 
+            // Giải mã JSON nếu `category_id` là chuỗi
+            $categoryIds = is_string($request->category_id)
+                ? json_decode($request->category_id, true)
                 : $request->category_id;
-    
+
             if (is_array($categoryIds)) {
                 foreach ($categoryIds as $categoryId) {
-                    $productCategory = new ProductCategory();
-                    $productCategory->product_id = $product->id;
-                    $productCategory->category_id = $categoryId;
-                    $productCategory->save();                    
+                    // Kiểm tra xem mối quan hệ đã tồn tại chưa
+                    $exists = ProductCategory::where('product_id', $product->id)
+                        ->where('category_id', $categoryId)
+                        ->exists();
+
+                    // Nếu chưa tồn tại thì thêm mới
+                    if (!$exists) {
+                        $productCategory = new ProductCategory();
+                        $productCategory->product_id = $product->id;
+                        $productCategory->category_id = $categoryId;
+                        $productCategory->save();
+                    }
                 }
             }
             // Xử lý hình ảnh
@@ -146,19 +132,20 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, $id)
     {
         $product = Product::findOrFail($id);
-        
+
         $product->brand_id = $request->brand_id;
         $product->name = $request->name;
         $product->price = $request->price;
         $product->description = $request->description;
         $product->status = $request->status;
         $product->updated_at = now();
-    
+        $product->updated_by = 1;
+
         if ($product->save()) {
-            $categoryIds = is_string($request->category_id) 
-                ? json_decode($request->category_id, true) 
+            $categoryIds = is_string($request->category_id)
+                ? json_decode($request->category_id, true)
                 : (array) $request->category_id;
-    
+
             if (is_array($categoryIds)) {
                 ProductCategory::where('product_id', $product->id)->delete();
                 foreach ($categoryIds as $categoryId) {
@@ -168,8 +155,21 @@ class ProductController extends Controller
                     $productCategory->save();
                 }
             }
-    
+
             if ($request->has('image_url')) {
+                // Lấy danh sách ảnh cũ
+                $oldImages = ProductImage::where('product_id', $product->id)->get();
+
+                // Xóa ảnh cũ khỏi thư mục
+                foreach ($oldImages as $oldImage) {
+                    $imagePath = public_path('images/product/' . $oldImage->image_url);
+                    if (file_exists($imagePath)) {
+                        unlink($imagePath);
+                    }
+                }
+
+                // Xóa ảnh cũ khỏi database
+                ProductImage::where('product_id', $product->id)->delete();
                 $count = 1;
                 foreach ($request->image_url as $file) {
                     $productImage = new ProductImage();
@@ -182,7 +182,7 @@ class ProductController extends Controller
                     $count++;
                 }
             }
-    
+
             return response()->json([
                 'status' => true,
                 'message' => 'Cập nhật sản phẩm thành công',
@@ -210,7 +210,7 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = ($product->status == 1) ? 2 : 1;
-
+        $product->updated_by = 1;
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
             $result = [
@@ -240,7 +240,7 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = 0;
-
+        $product->updated_by = 1;
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
             $result = [
@@ -270,7 +270,7 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = 2;
-
+        $product->updated_by = 1;
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
             $result = [

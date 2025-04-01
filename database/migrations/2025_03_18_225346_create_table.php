@@ -14,7 +14,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
-            
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
 
@@ -24,6 +25,8 @@ return new class extends Migration
             $table->text('address');
             $table->string('phone', 20);
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
 
         Schema::create('discounts', function (Blueprint $table) {
@@ -32,14 +35,18 @@ return new class extends Migration
             $table->decimal('discount_percent', 5, 2);
             $table->date('valid_until')->nullable();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
 
         Schema::create('news', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->text('content');
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(2);
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
 
         Schema::create('news_categories', function (Blueprint $table) {
@@ -75,7 +82,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('content');
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(2);
             $table->timestamps();
         });
 
@@ -102,6 +109,7 @@ return new class extends Migration
             $table->integer('record_id')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
         });
     }
 

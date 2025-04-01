@@ -171,9 +171,10 @@ Route::prefix('order')->group(function () {
 	Route::get('/orderdetail', [OrderController::class, 'index1']);
 	Route::get('/trash', [OrderController::class, 'trash']);
 	Route::get('/show/{id}', [OrderController::class, 'show']);
+	Route::get('/show/orderitem/{id}', [OrderController::class, 'show1']);
 	Route::post('/update/{id}', [OrderController::class, 'update']);
 	Route::get('/delete/{id}', [OrderController::class, 'delete']);
-	Route::get('/status/{id}', [OrderController::class, 'status']);
+	Route::put('/status/{id}', [OrderController::class, 'status']);
 	Route::delete('/destroy/{id}', [OrderController::class, 'destroy']);
 	Route::get('/restore/{id}', [OrderController::class, 'restore']);
 	Route::post('/placeOrder', [OrderController::class, 'placeOrder']);
@@ -193,6 +194,7 @@ Route::prefix('product')->group(function () {
 //UC 32: Quản lý sản phẩm khuyến mãi
 Route::prefix('discount')->group(function () {
 	Route::get('/', [DiscountController::class, 'index']);
+	Route::get('/show/{id}', [DiscountController::class, 'index']);
 	Route::get('/destroy/{id}', [DiscountController::class, 'destroy']);
 });
 
@@ -212,6 +214,7 @@ Route::prefix('productstore')->group(function () {
 //UC34: Giỏ hàng
 Route::prefix('cart')->group(function () {
 	Route::get('/', [ControllersCartController::class, 'index']);
+	Route::get('/show/{id}', [ControllersCartController::class, 'show']);
 	Route::delete('/destroy/{id}', [ControllersCartController::class, 'destroy']);
 });
 //UC35: chat

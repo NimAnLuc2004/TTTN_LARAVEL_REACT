@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Log;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 class LogController extends Controller
 {
     public function getLogs()
     {
         return Log::latest()->paginate(10);
     }    
+
     public function destroy($id)
     {
         $log = Log::find($id);
@@ -37,6 +39,7 @@ class LogController extends Controller
         }
         return response()->json($result);
     }
+
     public function storeLog(Request $request)
     {
         $validated = $request->validate([
@@ -46,10 +49,11 @@ class LogController extends Controller
     
         try {
             $log = Log::create([
-                'user_id' => Auth::id(),
+                'user_id' => Auth::id(),  // Người tạo log
                 'action' => $validated['action'],
                 'description' => $validated['description'],
                 'ip_address' => $request->ip(),
+                'created_by' => Auth::id(),  // Gán created_by
             ]);
     
             return response()->json([
@@ -65,6 +69,6 @@ class LogController extends Controller
             ], 500);
         }
     }
-    
-    
+
+
 }

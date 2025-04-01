@@ -20,7 +20,24 @@ class PaymentController extends Controller
         ];
         return response()->json($result);
     }
-
+    public function show($id)
+    {
+        $payment = Payment::find($id);
+        if ($payment == null) {
+            $result = [
+                'status' => false,
+                'message' => 'Không tìm thấy dữ liệu',
+                'payment' => $payment
+            ];
+        } else {
+            $result = [
+                'status' => true,
+                'message' => 'Tải dữ liệu thành công',
+                'payment' => $payment
+            ];
+        }
+        return response()->json($result);
+    }
     public function destroy($id)
     {
         $payment = Payment::find($id);

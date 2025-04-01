@@ -14,7 +14,7 @@ class ProductstoreController extends Controller
     {
         $productstore = Productstore::where('status', '!=', 0)
             ->orderBy('created_at', 'DESC')
-            ->select("id", "product_id", "price_root", "status", "qty")
+            ->select("id", "product_id", "price_root", "qty")
             ->get();
         $result = [
             'status' => true,

@@ -20,7 +20,24 @@ class DiscountController extends Controller
         ];
         return response()->json($result);
     }
-
+    public function show($id)
+    {
+        $discount = Discount::find($id);
+        if ($discount == null) {
+            $result = [
+                'status' => false,
+                'message' => 'Không tìm thấy dữ liệu',
+                'discounts' => $discount
+            ];
+        } else {
+            $result = [
+                'status' => true,
+                'message' => 'Tải dữ liệu thành công',
+                'discounts' => $discount
+            ];
+        }
+        return response()->json($result);
+    }
 
 
     public function destroy($id)

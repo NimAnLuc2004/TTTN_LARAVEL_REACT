@@ -27,8 +27,8 @@ class ContactController extends Controller
     {
         $contacts = Contact::where('contacts.status', '=', 0)
             ->join('users', 'contacts.user_id', '=', 'users.id')
-            ->contactBy('contacts.created_at', 'DESC')
-            ->select("contacts.id", "contacts.user_id", "contacts.title", "contacts.status", "users.name as username", "contacts.phone", "contacts.email")
+            ->orderBy('contacts.created_at', 'DESC')
+            ->select("contacts.id", "contacts.user_id", "contacts.status", "users.name as username", "contacts.name")
             ->get();
         $result = [
             'status' => true,

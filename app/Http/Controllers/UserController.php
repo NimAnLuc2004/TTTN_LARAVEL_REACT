@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\ShippingAddress;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -14,7 +15,7 @@ class UserController extends Controller
     {
         $users = User::where('status', '!=', 0)
             ->orderBy('created_at', 'DESC')
-            ->select("id", "name", "phone", "password", "thumbnail", "status", "role")
+            ->select("id", "name", "image", "status", "role")
             ->get();
         $result = [
             'status' => true,
@@ -27,7 +28,7 @@ class UserController extends Controller
     {
         $users = User::where('status', '=', 0)
             ->orderBy('created_at', 'DESC')
-            ->select("id", "name", "phone", "thumbnail", "status", "role")
+            ->select("id", "name", "image", "status", "role")
             ->get();
         $result = [
             'status' => true,
@@ -39,130 +40,151 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::find($id);
-        if ($user == null) {
-            $result = [
+    
+        if (!$user) {
+            return response()->json([
                 'status' => false,
                 'message' => 'Không tìm thấy dữ liệu',
-                'user' => $user
-            ];
-        } else {
-            $result = [
-                'status' => true,
-                'message' => 'Tải dữ liệu thành công',
-                'user' => $user
-            ];
+                'user' => null,
+                'shipping_address' => null
+            ]);
         }
-        return response()->json($result);
+    
+    
+        $shippingAddress = ShippingAddress::where('user_id', $id)->first();
+    
+        return response()->json([
+            'status' => true,
+            'message' => 'Tải dữ liệu thành công',
+            'user' => $user,
+            'shipping_address' => $shippingAddress
+        ]);
     }
+    
+
     public function store(StoreUserRequest $request)
     {
         $user = new User();
-        $user->name =  $request->name;
-        $user->email =  $request->email;
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password); // Mã hóa mật khẩu
+        $user->role = $request->role;
+        $user->status = $request->status;
+        $user->created_by =  1;
+        $user->created_at = now();
 
-        $thumbnails = []; // Khởi tạo mảng cho thumbnail
+        $images = [];
 
-        if ($request->hasFile('thumbnail')) {
-            foreach ($request->file('thumbnail') as $image) {
-                $exten = $image->extension();
-                $imageName = date('YmdHis') . '_' . uniqid() . '.' . $exten; // Đổi tên ảnh để tránh trùng lặp
-                $image->move(public_path('thumbnail/user'), $imageName);
-                $thumbnails[] = $imageName;
+        if ($request->hasFile('image')) {
+            foreach ($request->file('image') as $image) {
+                $imageName = time() . '_' . uniqid() . '.' . $image->extension();
+                $image->move(public_path('images/user'), $imageName);
+                $images[] = $imageName;
             }
-            $user->image = json_encode($thumbnails);
-        } else {
-            return response()->json(['status' => false, 'message' => 'Không có hình ảnh nào được tải lên.']);
+            $user->image = json_encode($images);
         }
-        $user->role     =  $request->role;
-        $user->password =  $request->password;
-        $user->created_at =  date('Y-m-d H:i:s');
-        $user->status =  $request->status;
+
         if ($user->save()) {
-            $result = [
+            // Sau khi tạo user, lưu địa chỉ giao hàng
+            $address = new ShippingAddress();
+            $address->user_id = $user->id;
+            $address->address = $request->address;
+            $address->phone = $request->phone;
+            $address->created_at = now();
+            $address->created_by =  1;
+            $address->save();
+
+            return response()->json([
                 'status' => true,
-                'message' => 'Thêm thành công',
+                'message' => 'Thêm người dùng thành công!',
                 'user' => $user
-            ];
-        } else {
-            $result = [
-                'status' => false,
-                'message' => 'Không thể thêm',
-                'user' => null
-            ];
+            ]);
         }
-        return response()->json($result);
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Không thể thêm người dùng!',
+            'user' => null
+        ]);
     }
 
     public function update(UpdateUserRequest $request, $id)
     {
         $user = User::find($id);
-        if ($user == null) {
-            $result = [
+
+        if (!$user) {
+            return response()->json([
                 'status' => false,
-                'message' => 'Không tìm thấy thông tín',
-                'user' => null
-            ];
-            return response()->json($result);
+                'message' => 'Người dùng không tồn tại!',
+            ]);
         }
-        $user->name =  $request->name;
-        $user->email =  $request->email;
 
-        // Xử lý thumbnail
-        $thumbnails = []; // Khởi tạo mảng cho thumbnail
+        $user->name = $request->name;
+        $user->email = $request->email;
 
-        // Nếu có hình ảnh mới
-        if ($request->hasFile('thumbnail')) {
-            // Xóa hình ảnh cũ nếu có
+        // Kiểm tra nếu có cập nhật mật khẩu thì mới mã hóa lại
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->role = $request->role;
+        $user->status = $request->status;
+        $user->updated_by =  1;
+        $user->updated_at = now();
+
+        // Cập nhật ảnh đại diện
+        $images = [];
+
+        if ($request->hasFile('image')) {
+            // Xóa ảnh cũ nếu có
             if ($user->image) {
-                $oldThumbnails = json_decode($user->image);
-                foreach ($oldThumbnails as $oldThumbnail) {
-                    $oldThumbnailPath = public_path('thumbnail/user/' . $oldThumbnail);
-                    if (file_exists($oldThumbnailPath)) {
-                        unlink($oldThumbnailPath); // Xóa file cũ
+                $oldImages = json_decode($user->image, true);
+                foreach ($oldImages as $oldImage) {
+                    $oldImagePath = public_path('images/user/' . $oldImage);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
                     }
                 }
             }
 
-            // Xử lý hình ảnh mới
-            foreach ($request->file('thumbnail') as $image) {
-                $exten = $image->extension();
-                $imageName = date('YmdHis') . '_' . uniqid() . '.' . $exten; // Đổi tên ảnh để tránh trùng lặp
-                $image->move(public_path('thumbnail/user'), $imageName);
-                $thumbnails[] = $imageName;
+            // Lưu ảnh mới
+            foreach ($request->file('image') as $image) {
+                $imageName = time() . '_' . uniqid() . '.' . $image->extension();
+                $image->move(public_path('images/user'), $imageName);
+                $images[] = $imageName;
+            }
+            $user->image = json_encode($images);
+        }
+
+        if ($user->save()) {
+            // Cập nhật địa chỉ giao hàng
+            $address = ShippingAddress::where('user_id', $user->id)->first();
+            if (!$address) {
+                $address = new ShippingAddress();
+                $address->user_id = $user->id;
             }
 
-            // Cập nhật thumbnail mới
-            $user->image = json_encode($thumbnails);
-        } else {
-            // Nếu không có hình ảnh mới, giữ nguyên hình ảnh cũ
-            $user->image = $user->image;
-        }
+            $address->address = $request->address;
+            $address->phone = $request->phone;
+            $address->updated_at = now();
+            $address->updated_by =  1;
+            $address->save();
 
-        $user->role     =  $request->role;
-        if ($request->password == null) {
-            $user->password =  $user->password;
-        } else {
-            $user->password =  $request->password;
-        }
-
-
-        $user->updated_at =  date('Y-m-d H:i:s');
-        $user->status =  $request->status;
-        if ($user->save()) {
-            $result = [
+            return response()->json([
                 'status' => true,
-                'message' => 'Cập nhật thành công',
+                'message' => 'Cập nhật người dùng thành công!',
                 'user' => $user
-            ];
-        } else {
-            $result = [
-                'status' => false,
-                'message' => 'Không thể cập nhật',
-                'user' => null
-            ];
+            ]);
         }
-        return response()->json($result);
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Không thể cập nhật người dùng!',
+            'user' => null
+        ]);
     }
+
+
     public function status($id)
     {
         $user = User::find($id);
@@ -175,7 +197,7 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = ($user->status == 1) ? 2 : 1;
-
+        $user->updated_by =  1;
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
             $result = [
@@ -205,7 +227,7 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = 0;
-
+        $user->updated_by =  1;
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
             $result = [
@@ -235,7 +257,7 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = 2;
-
+        $user->updated_by =  1;
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
             $result = [

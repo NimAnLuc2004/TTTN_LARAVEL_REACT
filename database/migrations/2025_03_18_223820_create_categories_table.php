@@ -15,9 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('image')->nullable();
-            $table->foreignId('parent_id')->nullable()->constrained('categories')->onDelete('set null')->default('0');
-            $table->tinyInteger('status')->default(1);
+            $table->unsignedBigInteger('parent_id')->nullable()->default(0);
+            $table->foreign('parent_id')->references('id')->on('categories')->onDelete('set null'); // Hành động set null khi xóa
+            $table->tinyInteger('status')->default(2);
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 

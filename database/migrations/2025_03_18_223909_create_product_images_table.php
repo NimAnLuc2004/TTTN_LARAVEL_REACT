@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('password');
             $table->string('image')->nullable();
             $table->enum('role', ['user', 'admin'])->default('user');
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(2);
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
         // Bảng Hình ảnh sản phẩm

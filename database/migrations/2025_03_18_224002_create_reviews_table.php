@@ -18,6 +18,8 @@ return new class extends Migration
             $table->integer('rating');
             $table->text('comment')->nullable();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 

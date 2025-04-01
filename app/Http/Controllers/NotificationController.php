@@ -20,6 +20,25 @@ class NotificationController extends Controller
         ];
         return response()->json($result);
     }
+    public function show($id)
+    {
+        $notification = Notification::find($id);
+        if ($notification == null) {
+            $result = [
+                'status' => false,
+                'message' => 'Không tìm thấy dữ liệu',
+                'noti' => $notification
+            ];
+        } else {
+            $result = [
+                'status' => true,
+                'message' => 'Tải dữ liệu thành công',
+                'noti' => $notification
+            ];
+        }
+        return response()->json($result);
+    }
+
     public function destroy($id)
     {
         $noti = Notification::find($id);

@@ -17,8 +17,10 @@ return new class extends Migration
             $table->foreignId('brand_id')->nullable()->constrained('brands')->onDelete('set null');
             $table->decimal('price', 10, 2);
             $table->text('description')->nullable();
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(2);
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 

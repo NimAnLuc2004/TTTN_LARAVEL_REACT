@@ -73,7 +73,7 @@ class CategoryController extends Controller
         $category = new Category();
         $category->name =  $request->name;
         $category->parent_id = $request->parent_id == 0 ? null : $request->parent_id;
-
+        $category->created_by =  1;
         $category->image = json_encode($categories);
         $category->created_at =  date('Y-m-d H:i:s');
         $category->status =  $request->status;
@@ -132,7 +132,7 @@ class CategoryController extends Controller
 
         $category->updated_at = date('Y-m-d H:i:s');
         $category->status = $request->status;
-
+        $category->updated_by =  1;
         // Lưu lại thay đổi
         if ($category->save()) {
             return response()->json([
@@ -161,6 +161,7 @@ class CategoryController extends Controller
         }
         $category->status = ($category->status == 1) ? 2 : 1;
         $category->updated_at =  date('Y-m-d H:i:s');
+        $category->updated_by =  1;
         if ($category->save()) {
             $result = [
                 'status' => true,
@@ -189,6 +190,7 @@ class CategoryController extends Controller
             return response()->json($result);
         }
         $category->status = 0;
+        $category->updated_by =  1;
         $category->updated_at =  date('Y-m-d H:i:s');
         if ($category->save()) {
             $result = [
@@ -218,6 +220,7 @@ class CategoryController extends Controller
             return response()->json($result);
         }
         $category->status = 2;
+        $category->updated_by =  1;
         $category->updated_at =  date('Y-m-d H:i:s');
         if ($category->save()) {
             $result = [

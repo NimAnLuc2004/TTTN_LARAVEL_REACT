@@ -20,6 +20,7 @@ class WishlistController extends Controller
         ];
         return response()->json($result);
     }
+    
     public function destroy($id)
     {
         $wish = Wishlist::find($id);

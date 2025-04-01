@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
-            $table->tinyInteger('status')->default(1);
+            $table->tinyInteger('status')->default(2);
         });
     }
 

@@ -18,6 +18,9 @@ return new class extends Migration
             $table->string('size')->nullable();
             $table->integer('stock')->default(0);
             $table->decimal('price', 10, 2)->nullable();
+            $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
 
     }

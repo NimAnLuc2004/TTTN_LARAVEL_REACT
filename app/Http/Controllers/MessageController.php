@@ -20,6 +20,7 @@ class MessageController extends Controller
         ];
         return response()->json($result);
     }
+    
     public function show($chat_id)
     {
         $message = Message::where('chat_id', $chat_id)->get(); 

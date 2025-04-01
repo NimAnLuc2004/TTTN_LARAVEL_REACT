@@ -11,9 +11,9 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::where('status', '!=', 0)
+        $orders = Order::where('status', '!=', "cancelled")
             ->orderBy('created_at', 'DESC')
-            ->select("id", "name", "user_id", "status", "total")
+            ->select("id", "user_id", "status", "total")
             ->get();
         $result = [
             'status' => true,
@@ -46,9 +46,9 @@ class OrderController extends Controller
 
     public function trash()
     {
-        $orders = Order::where('status', '=', 0)
+        $orders = Order::where('status', '=', "cancelled")
             ->orderBy('created_at', 'DESC')
-            ->select("id", "name", "user_id", "status", "total")
+            ->select("id", "user_id", "status", "updated_at")
             ->get();
         $result = [
             'status' => true,
@@ -75,35 +75,53 @@ class OrderController extends Controller
         }
         return response()->json($result);
     }
-
-
-    public function status($id)
+    public function show1($id)
     {
         $order = Order::find($id);
-        if ($order == null) {
-            $result = [
+        $orderitem = OrderItem::where('order_id', $id)->get();
+
+        if (!$order || $orderitem->isEmpty()) {
+            return response()->json([
                 'status' => false,
-                'message' => 'Không tìm thấy thông tin',
-                'order' => null
-            ];
-            return response()->json($result);
+                'message' => 'Không tìm thấy dữ liệu',
+                'order' => $order,
+                'order_items' => []
+            ]);
         }
-        $order->status = ($order->status == 1) ? 2 : 1;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Tải dữ liệu thành công',
+            'order' => $order,
+            'order_items' => $orderitem
+        ]);
+    }
+
+
+    public function status(Request $request, $id)
+    {
+        $order = Order::find($id);
+        if (!$order) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không tìm thấy đơn hàng'
+            ], 404);
+        }
+
+        $request->validate([
+            'status' => 'required|in:pending,processing,shipped,complete,cancelled',
+        ]);
+
+        $order->status = $request->status;
         $order->updated_at =  date('Y-m-d H:i:s');
-        if ($order->save()) {
-            $result = [
-                'status' => true,
-                'message' => 'Thay đổi thành công',
-                'order' => $order
-            ];
-        } else {
-            $result = [
-                'status' => false,
-                'message' => 'Không thể thay đổi',
-                'order' => null
-            ];
-        }
-        return response()->json($result);
+        $order->updated_by =  1;
+        $order->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Cập nhật trạng thái thành công',
+            'order' => $order
+        ]);
     }
 
     public function restore($id)
@@ -118,37 +136,9 @@ class OrderController extends Controller
             ];
             return response()->json($result);
         }
-        $order->status = 2;
+        $order->status = "pending";
+        $order->updated_at =  date('Y-m-d H:i:s');
         $order->updated_by =  1;
-        $order->updated_at =  date('Y-m-d H:i:s');
-        if ($order->save()) {
-            $result = [
-                'status' => true,
-                'message' => 'Thay đổi thành công',
-                'order' => $order
-            ];
-        } else {
-            $result = [
-                'status' => false,
-                'message' => 'Không thể thay đổi',
-                'order' => null
-            ];
-        }
-        return response()->json($result);
-    }
-    public function delete($id)
-    {
-        $order = Order::find($id);
-        if ($order == null) {
-            $result = [
-                'status' => false,
-                'message' => 'Không tìm thấy thông tin',
-                'order' => null
-            ];
-            return response()->json($result);
-        }
-        $order->status = 0;
-        $order->updated_at =  date('Y-m-d H:i:s');
         if ($order->save()) {
             $result = [
                 'status' => true,
@@ -192,36 +182,64 @@ class OrderController extends Controller
     }
     public function update(Request $request, $id)
     {
+        // Kiểm tra đơn hàng có tồn tại không
         $order = Order::find($id);
-        if ($order == null) {
-            $result = [
+        if (!$order) {
+            return response()->json([
                 'status' => false,
-                'message' => 'Không tìm thấy thông tín',
-                'order' => null
-            ];
-            return response()->json($result);
+                'message' => 'Không tìm thấy đơn hàng',
+            ], 404);
         }
-        $order->name =  $request->name;
 
-        $order->total =  $request->total;
-        $order->user_id =  $request->user_id;
-        $order->updated_at =  date('Y-m-d H:i:s');
-        $order->status =  $request->status;
-        if ($order->save()) {
-            $result = [
-                'status' => true,
-                'message' => 'Cập nhật thành công',
-                'order' => $order
-            ];
-        } else {
-            $result = [
+        // Kiểm tra dữ liệu hợp lệ
+        if (!$request->has('order_items') || !is_array($request->order_items)) {
+            return response()->json([
                 'status' => false,
-                'message' => 'Không thể cập nhật',
-                'order' => null
-            ];
+                'message' => 'Dữ liệu không hợp lệ',
+            ], 400);
         }
-        return response()->json($result);
+
+        $orderItems = collect($request->order_items);
+        $existingItems = OrderItem::where('order_id', $id)->get();
+
+        // Cập nhật hoặc thêm mới sản phẩm vào đơn hàng
+        foreach ($orderItems as $item) {
+            if (isset($item['id'])) {
+                // Cập nhật sản phẩm đã tồn tại
+                $orderItem = OrderItem::where('id', $item['id'])->where('order_id', $id)->first();
+                if ($orderItem) {
+                    $orderItem->update([
+                        'product_id' => $item['product_id'] ?? $orderItem->product_id,
+                        'quantity' => $item['quantity'] ?? $orderItem->quantity,
+                        'price' => $item['price'] ?? $orderItem->price,
+                    ]);
+                }
+            } else {
+                // Thêm sản phẩm mới vào đơn hàng
+                OrderItem::create([
+                    'order_id' => $id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                ]);
+            }
+        }
+
+        // Xóa sản phẩm bị loại bỏ khỏi danh sách mới
+        $newItemIds = $orderItems->pluck('id')->filter()->all();
+        OrderItem::where('order_id', $id)
+            ->whereNotIn('id', $newItemIds)
+            ->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Cập nhật sản phẩm trong đơn hàng thành công!',
+            'order_items' => OrderItem::where('order_id', $id)->get(),
+        ]);
     }
+
+
+
     // public function placeOrder(Request $request)
     // {
     //     $order = new Order();
@@ -321,8 +339,8 @@ class OrderController extends Controller
     public function totalProductsSold()
     {
         $totalSold = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
-        ->where('orders.status', '!=', 'completed')
-        ->sum('order_items.quantity');   
+            ->where('orders.status', '!=', 'completed')
+            ->sum('order_items.quantity');
 
         return response()->json([
             'status' => true,

@@ -17,6 +17,8 @@ return new class extends Migration
             $table->enum('payment_method', ['VNPay', 'Momo', 'Paypal', 'Stripe']);
             $table->enum('status', ['pending', 'completed', 'failed'])->default('pending');
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
     }
 

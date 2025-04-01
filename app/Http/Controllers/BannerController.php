@@ -82,6 +82,7 @@ class BannerController extends Controller
         $banner->sort_order = $request->sort_order;
         $banner->created_at = now(); // Sử dụng helper now() để lấy thời gian hiện tại
         $banner->status = $request->status;
+        $banner->created_by = 1;
 
         if ($banner->save()) {
             $result = [
@@ -114,7 +115,7 @@ class BannerController extends Controller
         $banner->updated_by = 1;
         $banner->name = $request->name;
         $banner->link = $request->link;
-    
+        $banner->updated_by = 1;
         // Xử lý hình ảnh
         if ($request->hasFile('images')) {
             $banners = [];

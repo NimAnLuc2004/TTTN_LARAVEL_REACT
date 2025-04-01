@@ -24,7 +24,7 @@ class StoreProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => 'required|integer|exists:product,id', // Đảm bảo rằng product_id tồn tại
+            'product_id' => 'required|integer|exists:products,id', // Đảm bảo rằng product_id tồn tại
             'price_root' => 'required|numeric|min:0',   
             'qty'        => 'required|integer|min:0', 
         ];

@@ -74,7 +74,7 @@ class BrandController extends Controller
 
         $brand->image = json_encode($brands);
         $brand->description =  $request->description;
-
+        $brand->created_by =  1;
         // $brand->sort_order =  $request->sort_order;
         $brand->created_at =  date('Y-m-d H:i:s');
         $brand->status =  $request->status;
@@ -128,6 +128,7 @@ class BrandController extends Controller
         // $brand->sort_order =  $request->sort_order;
         $brand->updated_at =  date('Y-m-d H:i:s');
         $brand->status =  $request->status;
+        $brand->updated_by =  1;
         if ($brand->save()) {
             $result = [
                 'status' => true,
@@ -156,6 +157,7 @@ class BrandController extends Controller
         }
         $brand->status = ($brand->status == 1) ? 2 : 1;
         $brand->updated_at =  date('Y-m-d H:i:s');
+        $brand->updated_by =  1;
         if ($brand->save()) {
             $result = [
                 'status' => true,
@@ -185,6 +187,7 @@ class BrandController extends Controller
         }
         $brand->status = 0;
         $brand->updated_at =  date('Y-m-d H:i:s');
+        $brand->updated_by =  1;
         if ($brand->save()) {
             $result = [
                 'status' => true,
@@ -214,6 +217,7 @@ class BrandController extends Controller
         }
         $brand->status = 2;
         $brand->updated_at =  date('Y-m-d H:i:s');
+        $brand->updated_by =  1;
         if ($brand->save()) {
             $result = [
                 'status' => true,
