@@ -2,19 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 
 use App\Models\Brand;
 use App\Http\Requests\StoreBrandRequest;
 use App\Http\Requests\UpdateBrandRequest;
+use App\Models\Log;
+use Illuminate\Support\Facades\Auth;
 
 class BrandController extends Controller
 {
-    public function index()
+
+    private function writeLog($action, $table, $recordId, $description)
     {
-        $brands = Brand::where('status', '!=', 0)
-            ->orderBy('created_at', 'ASC')
-            ->select("id", "name", "image", "status")
-            ->get();
+        Log::create([
+            'user_id' =>  Auth::id() ?? 1,
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
+
+    public function index(Request $request)
+    {
+        $query = Brand::where('status', '!=', 0)
+            ->orderBy('created_at', 'DESC')
+            ->select("id", "name", "image", "status");
+    
+        // Nếu có tham số page thì phân trang, ngược lại lấy tất cả
+        if ($request->has('page')) {
+            $brands = $query->paginate(10);
+        } else {
+            $brands = $query->get();
+        }
+    
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -22,10 +44,12 @@ class BrandController extends Controller
         ];
         return response()->json($result);
     }
+    
+    
     public function trash()
     {
         $brands = Brand::where('status', '=', 0)
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "name", "image", "status")
             ->get();
         $result = [
@@ -56,11 +80,11 @@ class BrandController extends Controller
     public function store(StoreBrandRequest $request)
     {
         $brands = [];
-        $count=1;
+        $count = 1;
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $exten = $image->extension();
-                $imageName = date('YmdHis') .$count. '.' . $exten;
+                $imageName = date('YmdHis') . $count . '.' . $exten;
                 $image->move(public_path('images/brand'), $imageName);
                 $brands[] = $imageName; // Lưu tên hình ảnh vào mảng
                 $count++;
@@ -74,11 +98,12 @@ class BrandController extends Controller
 
         $brand->image = json_encode($brands);
         $brand->description =  $request->description;
-        $brand->created_by =  1;
+        $brand->created_by =  Auth::id();
         // $brand->sort_order =  $request->sort_order;
         $brand->created_at =  date('Y-m-d H:i:s');
         $brand->status =  $request->status;
         if ($brand->save()) {
+            $this->writeLog('create', 'brands', $brand->id, 'Thêm mới thương hiệu');
             $result = [
                 'status' => true,
                 'message' => 'Thêm thành công',
@@ -108,11 +133,11 @@ class BrandController extends Controller
         $brand->name =  $request->name;
 
         $brands = [];
-        $count=1;
+        $count = 1;
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
                 $exten = $image->extension();
-                $imageName = date('YmdHis') .$count. '.' . $exten;
+                $imageName = date('YmdHis') . $count . '.' . $exten;
                 $image->move(public_path('images/brand'), $imageName);
                 $brands[] = $imageName;
                 $count++;
@@ -121,15 +146,17 @@ class BrandController extends Controller
             // Cập nhật hình ảnh mới nếu có
             $brand->image = json_encode($brands);
         } else {
-    
-            $brand->image = $brand->image; 
+
+            $brand->image = $brand->image;
         }
         $brand->description =  $request->description;
         // $brand->sort_order =  $request->sort_order;
         $brand->updated_at =  date('Y-m-d H:i:s');
         $brand->status =  $request->status;
-        $brand->updated_by =  1;
+        $brand->updated_by =  Auth::id();
         if ($brand->save()) {
+            $brandJson=$brand->toJson();
+            $this->writeLog('update', 'brands', $brand->id, 'Cập nhật thương hiệu:'.$brandJson);
             $result = [
                 'status' => true,
                 'message' => 'Cập nhật thành công',
@@ -157,8 +184,9 @@ class BrandController extends Controller
         }
         $brand->status = ($brand->status == 1) ? 2 : 1;
         $brand->updated_at =  date('Y-m-d H:i:s');
-        $brand->updated_by =  1;
+        $brand->updated_by =  Auth::id();
         if ($brand->save()) {
+            $this->writeLog('status', 'brands', $brand->id, 'Thay đổi trạng thái thương hiệu');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -187,8 +215,9 @@ class BrandController extends Controller
         }
         $brand->status = 0;
         $brand->updated_at =  date('Y-m-d H:i:s');
-        $brand->updated_by =  1;
+        $brand->updated_by =  Auth::id();
         if ($brand->save()) {
+            $this->writeLog('delete', 'brands', $brand->id, 'Xóa thương hiệu');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -217,8 +246,9 @@ class BrandController extends Controller
         }
         $brand->status = 2;
         $brand->updated_at =  date('Y-m-d H:i:s');
-        $brand->updated_by =  1;
+        $brand->updated_by =  Auth::id();
         if ($brand->save()) {
+            $this->writeLog('restore', 'brands', $brand->id, 'Khôi phục thương hiệu');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -245,7 +275,10 @@ class BrandController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $brand->id;
+        $brandData = $brand->toJson();
         if ($brand->delete()) {
+            $this->writeLog('destroy', 'brands', $idLog, 'Xóa vĩnh viễn thương hiệu:'.  $brandData);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',

@@ -2,17 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
+    private function writeLog($action, $table, $recordId, $description)
+    {
+        Log::create([
+            'user_id' => Auth::id() ,
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
     public function pending()
     {
         $payment = Payment::where('status', '=', 'pending')
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "order_id", "payment_method", "status")
-            ->get();
+            ->paginate(10);
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -49,7 +61,10 @@ class PaymentController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $payment->id;
+        $Data = $payment->toJson();
         if ($payment->delete()) {
+            $this->writeLog('destroy', 'payments', $idLog, 'Xóa thanh toán: ' . $Data);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',
@@ -67,9 +82,9 @@ class PaymentController extends Controller
     public function completed()
     {
         $payment = Payment::where('status', '=', 'completed')
-            ->orderBy('created_at', 'ASC')
-            ->select("id", "name", "image", "status")
-            ->get();
+            ->orderBy('created_at', 'DESC')
+            ->select("id", "order_id", "payment_method", "status")
+            ->paginate(10);
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -80,9 +95,9 @@ class PaymentController extends Controller
     public function failed()
     {
         $payment = Payment::where('status', '=', 'failed')
-            ->orderBy('created_at', 'ASC')
-            ->select("id", "name", "image", "status")
-            ->get();
+            ->orderBy('created_at', 'DESC')
+            ->select("id", "order_id", "payment_method", "status")
+            ->paginate(10);
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',

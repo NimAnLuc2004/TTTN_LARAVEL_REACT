@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('link');
             $table->string('type');
-            $table->unsignedBigInteger('table_id');
-            $table->integer('position')->nullable();
+            $table->unsignedBigInteger('table_id')->nullable();
+            $table->enum('position', ['mainmenu', 'footermenu'])->default('mainmenu');
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

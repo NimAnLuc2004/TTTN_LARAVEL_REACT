@@ -2,19 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
+    private function writeLog($action, $table, $recordId, $description)
+    {
+        Log::create([
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
     public function index()
     {
         $orders = Order::where('status', '!=', "cancelled")
             ->orderBy('created_at', 'DESC')
             ->select("id", "user_id", "status", "total")
-            ->get();
+            ->paginate(10);
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -114,14 +126,18 @@ class OrderController extends Controller
 
         $order->status = $request->status;
         $order->updated_at =  date('Y-m-d H:i:s');
-        $order->updated_by =  1;
+        $order->updated_by =  Auth::id();
         $order->save();
+        $this->writeLog('status', 'orders', $order->id, 'Cập nhật trạng thái đơn hàng thành: ' . $request->status);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Cập nhật trạng thái thành công',
-            'order' => $order
-        ]);
+        return response()->json(
+            [
+
+                'status' => true,
+                'message' => 'Cập nhật trạng thái thành công',
+                'order' => $order
+            ]
+        );
     }
 
     public function restore($id)
@@ -138,8 +154,9 @@ class OrderController extends Controller
         }
         $order->status = "pending";
         $order->updated_at =  date('Y-m-d H:i:s');
-        $order->updated_by =  1;
+        $order->updated_by =  Auth::id();
         if ($order->save()) {
+            $this->writeLog('restore', 'orders', $order->id, 'Khôi phục đơn hàng về trạng thái pending');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -165,7 +182,10 @@ class OrderController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $order->id;
+        $Data = $order->toJson();
         if ($order->delete()) {
+            $this->writeLog('destroy', 'orders', $idLog, 'Xóa vĩnh viễn đơn hàng:' . $Data);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',
@@ -190,7 +210,8 @@ class OrderController extends Controller
                 'message' => 'Không tìm thấy đơn hàng',
             ], 404);
         }
-
+        $order->updated_by =  Auth::id();
+        $order->updated_at =  date('Y-m-d H:i:s');
         // Kiểm tra dữ liệu hợp lệ
         if (!$request->has('order_items') || !is_array($request->order_items)) {
             return response()->json([
@@ -216,12 +237,14 @@ class OrderController extends Controller
                 }
             } else {
                 // Thêm sản phẩm mới vào đơn hàng
-                OrderItem::create([
+                $newItem = OrderItem::create([
+
                     'order_id' => $id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $item['price'],
                 ]);
+                $this->writeLog('create', 'order_items', $newItem->id, 'Thêm sản phẩm mới vào đơn hàng: ' . $newItem->toJson());
             }
         }
 
@@ -285,14 +308,15 @@ class OrderController extends Controller
     // }
     public function mostOrderedProduct()
     {
-        $topProduct = OrderItem::select('product_id')
-            ->groupBy('product_id')
-            ->selectRaw('SUM(quantity) as total_quantity')
+        $topProduct = OrderItem::join('products', 'order_items.product_id', '=', 'products.id')
+            ->select('order_items.product_id')
+            ->selectRaw('products.name, SUM(order_items.quantity) as total_quantity')
+            ->groupBy('order_items.product_id', 'products.name')
             ->orderByDesc('total_quantity')
             ->take(5)
             ->get();
 
-        if (!$topProduct) {
+        if ($topProduct->isEmpty()) {
             return response()->json([
                 'status' => false,
                 'message' => 'Không có dữ liệu'
@@ -305,11 +329,13 @@ class OrderController extends Controller
             'top_product' => $topProduct
         ]);
     }
+
     public function topRevenueProducts()
     {
         $topProducts = OrderItem::select('product_id')
-            ->groupBy('product_id')
-            ->selectRaw('SUM(quantity * price) as total_revenue')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->selectRaw('products.name, SUM(order_items.quantity * order_items.price) as total_revenue')
+            ->groupBy('product_id', 'products.name')
             ->orderByDesc('total_revenue')
             ->take(5)
             ->get();
@@ -327,6 +353,7 @@ class OrderController extends Controller
             'top_products' => $topProducts
         ]);
     }
+
     public function totalOrders()
     {
         $totalOrders = Order::count();

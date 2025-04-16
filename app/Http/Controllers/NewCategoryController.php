@@ -10,7 +10,7 @@ class NewCategoryController extends Controller
     public function index()
     {
         $newcats = NewsCategory::query()
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "name")
             ->get();
         $result = [

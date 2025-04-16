@@ -6,16 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\Contact;
 use App\Http\Requests\StoreContactRequest;
 use App\Http\Requests\UpdateContactRequest;
+use App\Models\Log;
+use Illuminate\Support\Facades\Auth;
 
 class ContactController extends Controller
 {
+    private function writeLog($action, $table, $recordId, $description)
+    {
+        Log::create([
+            'user_id' =>  Auth::id(),
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
+
     public function index()
     {
         $contacts = Contact::where('contacts.status', '!=', 0)
             ->join('users', 'contacts.user_id', '=', 'users.id')
             ->orderBy('contacts.created_at', 'DESC')
-            ->select("contacts.id","contacts.name", "contacts.user_id", "contacts.title", "contacts.status", "users.name as username", "contacts.phone", "contacts.email")
-            ->get();
+            ->select("contacts.id", "contacts.name", "contacts.user_id", "contacts.title", "contacts.status", "users.name as username", "contacts.phone", "contacts.email")
+            ->paginate(10); 
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -56,15 +69,14 @@ class ContactController extends Controller
         return response()->json($result);
     }
     public function replay(StoreContactRequest $request) {}
-    public function update(Request $request,$id)
+    public function update(Request $request, $id)
     {
         $contact = Contact::find($id);
-        if($contact==null)
-        {
-            $result =[
-                'status'=>false,
-                'message'=>'Không tìm thấy thông tín',
-                'contact'=>null
+        if ($contact == null) {
+            $result = [
+                'status' => false,
+                'message' => 'Không tìm thấy thông tín',
+                'contact' => null
             ];
             return response()->json($result);
         }
@@ -74,23 +86,22 @@ class ContactController extends Controller
         $contact->phone =  $request->phone;
         $contact->title =  $request->title;
         $contact->content =  $request->content;
-        $contact->updated_by =  1;
+        $contact->updated_by =  Auth::id();
         $contact->updated_at =  date('Y-m-d H:i:s');
         $contact->status =  $request->status;
-        if($contact->save())
-        {
-            $result =[
-                'status'=>true,
-                'message'=>'Cập nhật thành công',
-                'contact'=>$contact
+        if ($contact->save()) {
+            $contactJson = $contact->toJson();
+            $this->writeLog('update', 'contacts', $contact->id, 'Cập nhật liên hệ:' . $contactJson);
+            $result = [
+                'status' => true,
+                'message' => 'Cập nhật thành công',
+                'contact' => $contact
             ];
-        }
-        else
-        {
-            $result =[
-                'status'=>false,
-                'message'=>'Không thể cập nhật',
-                'contact'=>null
+        } else {
+            $result = [
+                'status' => false,
+                'message' => 'Không thể cập nhật',
+                'contact' => null
             ];
         }
         return response()->json($result);
@@ -108,9 +119,10 @@ class ContactController extends Controller
             return response()->json($result);
         }
         $contact->status = ($contact->status == 1) ? 2 : 1;
-        $contact->updated_by =  1;
+        $contact->updated_by =  Auth::id();
         $contact->updated_at =  date('Y-m-d H:i:s');
         if ($contact->save()) {
+            $this->writeLog('status', 'contacts', $contact->id, 'Thay đổi trạng thái liên hệ');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -138,9 +150,10 @@ class ContactController extends Controller
             return response()->json($result);
         }
         $contact->status = 0;
-        $contact->updated_by =  1;
+        $contact->updated_by =  Auth::id();
         $contact->updated_at =  date('Y-m-d H:i:s');
         if ($contact->save()) {
+            $this->writeLog('delete', 'contacts', $contact->id, 'Chuyển liên hệ vào thùng rác');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -168,9 +181,10 @@ class ContactController extends Controller
             return response()->json($result);
         }
         $contact->status = 2;
-        $contact->updated_by =  1;
+        $contact->updated_by =  Auth::id();
         $contact->updated_at =  date('Y-m-d H:i:s');
         if ($contact->save()) {
+            $this->writeLog('restore', 'contacts', $contact->id, 'Khôi phục liên hệ từ thùng rác');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -197,7 +211,11 @@ class ContactController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $contact->id;
+        $contactData = $contact->toJson();
         if ($contact->delete()) {
+
+            $this->writeLog('destroy', 'contacts', $idLog, 'Xóa vĩnh viễn liên hệ:' .  $contactData);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',
@@ -214,34 +232,32 @@ class ContactController extends Controller
     }
     public function store(Request $request)
     {
-           $contact = new Contact();
-           $contact->name =  $request->name;
-           $contact->title =  $request->title;
-           $contact->email =  $request->email;
-           $contact->phone =  $request->phone;
-           $contact->phone =  $request->title;
-           $contact->content =  $request->content;
-           $contact->user_id =  $request->user_id;
-           $contact->replay_id =  0;
+        $contact = new Contact();
+        $contact->name =  $request->name;
+        $contact->title =  $request->title;
+        $contact->email =  $request->email;
+        $contact->phone =  $request->phone;
+        $contact->phone =  $request->title;
+        $contact->content =  $request->content;
+        $contact->user_id =  $request->user_id;
+        $contact->replay_id =  0;
 
-           $contact->created_at =  date('Y-m-d H:i:s');
-           $contact->status =  1;
-           if($contact->save())
-           {
-               $result =[
-                   'status'=>true,
-                   'message'=>'Thêm thành công',
-                   'contact'=>$contact
-               ];
-           }
-           else
-           {
-               $result =[
-                   'status'=>false,
-                   'message'=>'Không thể thêm',
-                   'contact'=>null
-               ];
-           }
-           return response()->json($result);
-   }
+        $contact->created_at =  date('Y-m-d H:i:s');
+        $contact->status =  1;
+        if ($contact->save()) {
+            $this->writeLog('create', 'contacts', $contact->id, 'Thêm liên hệ mới');
+            $result = [
+                'status' => true,
+                'message' => 'Thêm thành công',
+                'contact' => $contact
+            ];
+        } else {
+            $result = [
+                'status' => false,
+                'message' => 'Không thể thêm',
+                'contact' => null
+            ];
+        }
+        return response()->json($result);
+    }
 }

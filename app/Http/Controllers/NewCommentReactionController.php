@@ -10,7 +10,7 @@ class NewCommentReactionController extends Controller
     public function index()
     {
         $newreacts = NewsCommentReaction::query()
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "user_id", "comment_id", "reaction")
             ->get();
         $result = [

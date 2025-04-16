@@ -25,7 +25,7 @@ return new class extends Migration
             $table->text('address');
             $table->string('phone', 20);
             $table->timestamps();
-            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
         });
 
@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->decimal('discount_percent', 5, 2);
             $table->date('valid_until')->nullable();
+            $table->tinyInteger('status')->default(2);
             $table->timestamps();
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('updated_by')->nullable();
@@ -76,21 +77,15 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->text('message');
             $table->timestamps();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
         });
 
-        Schema::create('pages', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->text('content');
-            $table->tinyInteger('status')->default(2);
-            $table->timestamps();
-        });
 
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user1_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('user2_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
         });
 
         Schema::create('messages', function (Blueprint $table) {
@@ -103,13 +98,12 @@ return new class extends Migration
 
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('action');
             $table->string('table_name')->nullable();
-            $table->integer('record_id')->nullable();
+            $table->unsignedBigInteger('record_id')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
-            $table->unsignedBigInteger('created_by');
         });
     }
 
@@ -123,7 +117,6 @@ return new class extends Migration
         Schema::dropIfExists('news_comments');
         Schema::dropIfExists('news_comment_reactions');
         Schema::dropIfExists('notifications');
-        Schema::dropIfExists('pages');
         Schema::dropIfExists('chats');
         Schema::dropIfExists('messages');
         Schema::dropIfExists('logs');

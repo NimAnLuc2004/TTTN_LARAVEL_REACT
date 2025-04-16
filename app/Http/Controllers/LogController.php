@@ -12,7 +12,14 @@ class LogController extends Controller
     {
         return Log::latest()->paginate(10);
     }    
-
+    public function show($id)
+    {
+        $log = Log::find($id);
+        if (!$log) {
+            return response()->json(['message' => 'Log không tồn tại'], 404);
+        }
+        return response()->json($log);
+    }
     public function destroy($id)
     {
         $log = Log::find($id);
@@ -44,16 +51,18 @@ class LogController extends Controller
     {
         $validated = $request->validate([
             'action' => 'required|string|max:255',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'table_name' => 'nullable|string|max:255',
+            'record_id' => 'nullable|integer'
         ]);
     
         try {
             $log = Log::create([
-                'user_id' => Auth::id(),  // Người tạo log
+                'user_id' => Auth::id(),  
                 'action' => $validated['action'],
-                'description' => $validated['description'],
-                'ip_address' => $request->ip(),
-                'created_by' => Auth::id(),  // Gán created_by
+                'table_name' => $validated['table_name'] ?? null,
+                'record_id' => $validated['record_id'] ?? null,
+                'description' => $validated['description'] 
             ]);
     
             return response()->json([
@@ -69,6 +78,5 @@ class LogController extends Controller
             ], 500);
         }
     }
-
 
 }

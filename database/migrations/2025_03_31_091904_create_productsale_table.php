@@ -12,16 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('productsale', function (Blueprint $table) {
-            $table->id(); // Khóa chính
-            $table->string('name'); // Tên sản phẩm khuyến mãi
-            $table->decimal('discount_percent', 5, 2)->nullable();  // % giảm giá
-            $table->dateTime('start_date')->nullable(); // Ngày bắt đầu
-            $table->dateTime('end_date')->nullable(); // Ngày kết thúc
-            $table->timestamps(); // Tự động tạo cột created_at, updated_at
-            $table->unsignedBigInteger('created_by'); // Người tạo
-            $table->unsignedBigInteger('updated_by')->nullable(); // Người cập nhật
-            $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('updated_by')->references('id')->on('users')->onDelete('set null');
+            $table->id();
+            $table->unsignedBigInteger('product_id');
+            $table->decimal('discount_percent', 5, 2)->nullable();  
+            $table->dateTime('start_date')->nullable(); 
+            $table->dateTime('end_date')->nullable();
+            $table->timestamps(); 
+            $table->unsignedBigInteger('created_by'); 
         });
     }
 

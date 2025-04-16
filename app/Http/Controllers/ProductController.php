@@ -6,21 +6,40 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Log;
 use App\Models\ProductCategory;
 use App\Models\ProductImage;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 
 
 class ProductController extends Controller
 {
-    public function index()
+
+    private function writeLog($action, $table, $recordId, $description)
     {
-        $products = Product::where('products.status', '!=', 0)
+        Log::create([
+            'user_id' => Auth::id(),
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
+    public function index(Request $request)
+    {
+        $query = Product::where('products.status', '!=', 0)
             ->with(['categories:id,name', 'brand:id,name', 'images'])
-            ->orderBy('products.created_at', 'DESC')
-            ->get();
+            ->orderBy('products.created_at', 'DESC');
+        // Nếu có tham số page thì phân trang, ngược lại lấy tất cả
+        if ($request->has('page')) {
+            $products = $query->paginate(10);
+        } else {
+            $products = $query->get();
+        }
+
 
         return response()->json([
             'status' => true,
@@ -69,9 +88,10 @@ class ProductController extends Controller
         $product->description = $request->description;
         $product->created_at = now();
         $product->status = $request->status;
-        $product->created_by = 1;
+        $product->created_by = Auth::id();
 
         if ($product->save()) {
+            $this->writeLog('create', 'products', $product->id, 'Thêm mới sản phẩm');
             // Giải mã JSON nếu `category_id` là chuỗi
             $categoryIds = is_string($request->category_id)
                 ? json_decode($request->category_id, true)
@@ -90,6 +110,7 @@ class ProductController extends Controller
                         $productCategory->product_id = $product->id;
                         $productCategory->category_id = $categoryId;
                         $productCategory->save();
+                        $this->writeLog('create', 'productCategory', $productCategory->id, 'Thêm mới danh mục sản phẩm');
                     }
                 }
             }
@@ -103,8 +124,9 @@ class ProductController extends Controller
                     $imageName = Str::of($request->name)->slug('-') . date('YmdHis') . $count . "." . $exten;
                     $file->move(public_path('images/product'), $imageName);
                     $productImage->image_url = $imageName;
-
+                    $this->writeLog('create', 'productImage', $productImage->id, 'Thêm mới ảnh');
                     if (!$productImage->save()) {
+
                         return response()->json([
                             'status' => false,
                             'message' => 'Lưu ảnh thất bại cho: ' . $imageName,
@@ -139,9 +161,10 @@ class ProductController extends Controller
         $product->description = $request->description;
         $product->status = $request->status;
         $product->updated_at = now();
-        $product->updated_by = 1;
+        $product->updated_by = Auth::id();
 
         if ($product->save()) {
+            $this->writeLog('update', 'product', $product->id, 'Cập nhật sản phẩm:' . $product->toJson());
             $categoryIds = is_string($request->category_id)
                 ? json_decode($request->category_id, true)
                 : (array) $request->category_id;
@@ -153,6 +176,7 @@ class ProductController extends Controller
                     $productCategory->product_id = $product->id;
                     $productCategory->category_id = $categoryId;
                     $productCategory->save();
+                    $this->writeLog('update', 'productCategory', $productCategory->id, 'Cập nhật danh mục sản phẩm:' . $productCategory->toJson());
                 }
             }
 
@@ -179,6 +203,7 @@ class ProductController extends Controller
                     $file->move(public_path('images/product'), $imageName);
                     $productImage->image_url = $imageName;
                     $productImage->save();
+                    $this->writeLog('update', 'productImage', $productImage->id, 'Cập nhật ảnh:' . $productImage->toJson());
                     $count++;
                 }
             }
@@ -210,9 +235,10 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = ($product->status == 1) ? 2 : 1;
-        $product->updated_by = 1;
+        $product->updated_by = Auth::id();
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
+            $this->writeLog('status', 'products', $product->id, 'Thay đổi trạng thái sản phẩm');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -240,9 +266,10 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = 0;
-        $product->updated_by = 1;
+        $product->updated_by = Auth::id();
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
+            $this->writeLog('delete', 'products', $product->id, 'Xóa tạm sản phẩm');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -270,9 +297,10 @@ class ProductController extends Controller
             return response()->json($result);
         }
         $product->status = 2;
-        $product->updated_by = 1;
+        $product->updated_by = Auth::id();
         $product->updated_at =  date('Y-m-d H:i:s');
         if ($product->save()) {
+            $this->writeLog('restore', 'products', $product->id, 'Khôi phục sản phẩm');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -299,7 +327,10 @@ class ProductController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $product->id;
+        $Data = $product->toJson();
         if ($product->delete()) {
+            $this->writeLog('destroy', 'products', $idLog, 'Xóa vĩnh viễn sản phẩm:' . $Data);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',

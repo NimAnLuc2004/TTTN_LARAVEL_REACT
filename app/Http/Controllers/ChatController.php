@@ -10,7 +10,7 @@ class ChatController extends Controller
     public function index()
     {
         $chat = Chat::query()
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "user1_id", "user1_id")
             ->get();
         $result = [

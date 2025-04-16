@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\Review;
 use Illuminate\Http\Request;
 
@@ -9,18 +10,20 @@ class ReviewController extends Controller
 {
     public function index()
     {
-        $review = Review::query()
-            ->orderBy('created_at', 'ASC')
-            ->select("id", "product_id", "rating")
-            ->get();
-        $result = [
+        $reviews = Review::query()
+            ->join('products', 'reviews.product_id', '=', 'products.id')
+            ->orderBy('reviews.created_at', 'DESC')
+            ->select('reviews.id', 'reviews.product_id', 'reviews.rating', 'products.name as product_name')
+            ->paginate(10);
+
+        return response()->json([
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
-            'review' => $review
-        ];
-        return response()->json($result);
+            'review' => $reviews
+        ]);
     }
-    public function show($id)
+
+   public function show($id)
     {
         $review = Review::find($id);
         if ($review == null) {
@@ -37,7 +40,7 @@ class ReviewController extends Controller
             ];
         }
         return response()->json($result);
-    }
+    } 
     public function destroy($id)
     {
         $review = Review::find($id);
@@ -49,7 +52,16 @@ class ReviewController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $review->id;
+        $Data = $review->toJson();
         if ($review->delete()) {
+            Log::create([
+                'user_id' => null,
+                'action' => 'destroy',
+                'table_name' => 'reviews',
+                'record_id' => $idLog,
+                'description' => 'Xóa vĩnh viễn reviews: ' . $Data,
+            ]);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',

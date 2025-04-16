@@ -6,17 +6,35 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Log;
 use App\Models\ShippingAddress;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+
 
 class UserController extends Controller
 {
-    public function index()
+    private function writeLog($action, $table, $recordId, $description)
     {
-        $users = User::where('status', '!=', 0)
+        Log::create([
+            'user_id' =>  Auth::id(),
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
+    public function index(Request $request)
+    {
+        $query = User::where('status', '!=', 0)
             ->orderBy('created_at', 'DESC')
-            ->select("id", "name", "image", "status", "role")
-            ->get();
+            ->select("id", "name", "image", "status", "role");
+
+        if ($request->has('page')) {
+            $users = $query->paginate(10);
+        } else {
+            $users = $query->get();
+        }
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -40,7 +58,7 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::find($id);
-    
+
         if (!$user) {
             return response()->json([
                 'status' => false,
@@ -49,10 +67,10 @@ class UserController extends Controller
                 'shipping_address' => null
             ]);
         }
-    
-    
+
+
         $shippingAddress = ShippingAddress::where('user_id', $id)->first();
-    
+
         return response()->json([
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -60,7 +78,7 @@ class UserController extends Controller
             'shipping_address' => $shippingAddress
         ]);
     }
-    
+
 
     public function store(StoreUserRequest $request)
     {
@@ -70,7 +88,7 @@ class UserController extends Controller
         $user->password = Hash::make($request->password); // Mã hóa mật khẩu
         $user->role = $request->role;
         $user->status = $request->status;
-        $user->created_by =  1;
+        $user->created_by =  Auth::id();
         $user->created_at = now();
 
         $images = [];
@@ -85,20 +103,33 @@ class UserController extends Controller
         }
 
         if ($user->save()) {
+            $this->writeLog('create', 'users', $user->id, 'Thêm người dùng mới');
             // Sau khi tạo user, lưu địa chỉ giao hàng
             $address = new ShippingAddress();
             $address->user_id = $user->id;
             $address->address = $request->address;
             $address->phone = $request->phone;
             $address->created_at = now();
-            $address->created_by =  1;
-            $address->save();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Thêm người dùng thành công!',
-                'user' => $user
-            ]);
+            $address->created_by =  Auth::id();
+            if ($address->save()) {
+                $this->writeLog(
+                    'create',
+                    'users,address',
+                    $user->id,
+                    'Thêm người dùng mới - User ID: ' . $user->id . ', Address ID: ' . $address->id
+                );
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Thêm người dùng thành công!',
+                    'user' => $user
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Lưu địa chỉ giao hàng thất bại!',
+                    'user' => $user
+                ]);
+            }
         }
 
         return response()->json([
@@ -129,7 +160,7 @@ class UserController extends Controller
 
         $user->role = $request->role;
         $user->status = $request->status;
-        $user->updated_by =  1;
+        $user->updated_by =  Auth::id();
         $user->updated_at = now();
 
         // Cập nhật ảnh đại diện
@@ -167,14 +198,26 @@ class UserController extends Controller
             $address->address = $request->address;
             $address->phone = $request->phone;
             $address->updated_at = now();
-            $address->updated_by =  1;
-            $address->save();
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Cập nhật người dùng thành công!',
-                'user' => $user
-            ]);
+            $address->updated_by =  Auth::id();
+            if ($address->save()) {
+                $this->writeLog(
+                    'update',
+                    'users,address',
+                    $user->id,
+                    'Cập nhật người dùng - User ID: ' . $user->toJson() . ', Address ID: ' . $address->toJson()
+                );
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Cập nhật người dùng thành công!',
+                    'user' => $user
+                ]);
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Lưu địa chỉ giao hàng thất bại!',
+                    'user' => $user
+                ]);
+            }
         }
 
         return response()->json([
@@ -197,9 +240,10 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = ($user->status == 1) ? 2 : 1;
-        $user->updated_by =  1;
+        $user->updated_by =  Auth::id();
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
+            $this->writeLog('status', 'users', $user->id, 'Thay đổi trạng thái người dùng');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -227,9 +271,10 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = 0;
-        $user->updated_by =  1;
+        $user->updated_by =  Auth::id();
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
+            $this->writeLog('delete', 'users', $user->id, 'Chuyển người dùng vào thùng rác');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -257,9 +302,10 @@ class UserController extends Controller
             return response()->json($result);
         }
         $user->status = 2;
-        $user->updated_by =  1;
+        $user->updated_by =  Auth::id();
         $user->updated_at =  date('Y-m-d H:i:s');
         if ($user->save()) {
+            $this->writeLog('restore', 'users', $user->id, 'Khôi phục người dùng ');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -286,7 +332,10 @@ class UserController extends Controller
             ];
             return response()->json($result);
         }
+        $idLog = $user->id;
+        $Data = $user->toJson();
         if ($user->delete()) {
+            $this->writeLog('destroy', 'users', $idLog, 'Xóa vĩnh viễn người dùng: ' . $Data);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',
@@ -303,38 +352,84 @@ class UserController extends Controller
     }
     public function login(Request $request)
     {
-        $email = $request->input('email');
-        $password = $request->input('password');
+        $request->validate([
+            "email" => "required|email",
+            "password" => "required"
+        ]);
 
-        // Tìm người dùng theo email
-        $loginuser = User::where('email', $email)->first();
+        // Tìm user theo email
+        $user = User::where('email', $request->email)->first();
 
-        // Kiểm tra nếu người dùng tồn tại, mật khẩu đúng và role là admin
-        if ($loginuser && Hash::check($password, $loginuser->password) && $loginuser->role === 'admin') {
-            $result = [
-                'status' => true,
-                'message' => 'Đăng nhập thành công',
-                'user' => $loginuser,
-            ];
+        if (!empty($user)) {
+            // ✅ Kiểm tra role
+            if ($user->role !== 'admin') {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Bạn không có quyền truy cập!"
+                ]);
+            }
+
+            // Kiểm tra password
+            if (Hash::check($request->password, $user->password)) {
+                $token = $user->createToken("myToken")->plainTextToken;
+                Log::create([
+                    'user_id' => $user->id,
+                    'action' => 'login',
+                    'table_name' => 'users',
+                    'record_id' => $user->id,
+                    'description' => 'Đăng nhập thành công',
+                ]);
+                return response()->json([
+                    "status" => true,
+                    "message" => "Logged in successfully",
+                    "token" => $token,
+                    "user" => $user
+                ]);
+            } else {
+                return response()->json([
+                    "status" => false,
+                    "message" => "Password didn't match"
+                ]);
+            }
         } else {
-            // Nếu email, mật khẩu sai hoặc không phải là admin
-            $result = [
-                'status' => false,
-                'message' => 'Email hoặc mật khẩu không chính xác hoặc tài khoản không có quyền truy cập',
-            ];
+            return response()->json([
+                "status" => false,
+                "message" => "Email is invalid"
+            ]);
         }
-
-        return response()->json($result);
     }
+
     public function totalUser()
     {
-        $total_user = User::where('role', 'user')->count();
+        $total_user = User::where('role', 'user')
+            ->where('status', 1)
+            ->count();
 
 
         return response()->json([
             'status' => true,
             'message' => 'Tổng số khách hàng',
             'total_user' => $total_user
+        ]);
+    }
+    public function profile()
+    {
+        $userdata = auth()->user();
+        return response()->json([
+            "status" => true,
+            "message" => "Profile data",
+            "data" => $userdata,
+            "id" => auth()->user()->id
+        ]);
+    }
+    public function logout()
+    {
+
+        auth()->user()->tokens()->delete();
+        $this->writeLog('logout', 'users', Auth::id(), 'Đăng xuất thành công');
+        return response()->json([
+            "status" => true,
+            "message" => "User loggout"
         ]);
     }
 }

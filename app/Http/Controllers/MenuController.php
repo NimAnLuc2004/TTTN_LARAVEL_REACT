@@ -6,15 +6,27 @@ use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Http\Requests\StoreMenuRequest;
 use App\Http\Requests\UpdateMenuRequest;
+use App\Models\Log;
+use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
+    private function writeLog($action, $table, $recordId, $description)
+    {
+        Log::create([
+            'user_id' => Auth::id() ,
+            'action' => $action,
+            'table_name' => $table,
+            'record_id' => $recordId,
+            'description' => $description,
+        ]);
+    }
     public function index()
     {
         $menu = Menu::where('status', '!=', 0)
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "name", "link", "type", "position", "status")
-            ->get();
+            ->paginate(10); 
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
@@ -25,7 +37,7 @@ class MenuController extends Controller
     public function trash()
     {
         $menu = Menu::where('status', '=', 0)
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "name", "link", "type", "position", "status")
             ->get();
         $result = [
@@ -63,10 +75,11 @@ class MenuController extends Controller
 
         $menu->position =  $request->position;
 
-        $menu->created_by =  1;
+        $menu->created_by =  Auth::id();
         $menu->created_at =  date('Y-m-d H:i:s');
         $menu->status =  $request->status;
         if ($menu->save()) {
+            $this->writeLog('create', 'menus', $menu->id, 'Thêm mới menu');
             $result = [
                 'status' => true,
                 'message' => 'Thêm thành công',
@@ -100,10 +113,11 @@ class MenuController extends Controller
 
         $menu->position =  $request->position;
 
-        $menu->created_by =  1;
-        $menu->created_at =  date('Y-m-d H:i:s');
+        $menu->updated_by =  Auth::id();
+        $menu->updated_at =  date('Y-m-d H:i:s');
         $menu->status =  $request->status;
         if ($menu->save()) {
+            $this->writeLog('update', 'menus', $menu->id, 'Cập nhật menu: ' . $menu->toJson());
             $result = [
                 'status' => true,
                 'message' => 'Cập nhật thành công',
@@ -130,9 +144,10 @@ class MenuController extends Controller
             return response()->json($result);
         }
         $menu->status = ($menu->status == 1) ? 2 : 1;
-        $menu->updated_by =  1;
+        $menu->updated_by =  Auth::id();
         $menu->updated_at =  date('Y-m-d H:i:s');
         if ($menu->save()) {
+            $this->writeLog('status', 'menus', $menu->id, 'Thay đổi trạng thái menu');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -160,9 +175,10 @@ class MenuController extends Controller
             return response()->json($result);
         }
         $menu->status = 0;
-        $menu->updated_by =  1;
+        $menu->updated_by =  Auth::id();
         $menu->updated_at =  date('Y-m-d H:i:s');
         if ($menu->save()) {
+            $this->writeLog('delete', 'menus', $menu->id, 'Chuyển menu vào thùng rác');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -190,9 +206,10 @@ class MenuController extends Controller
             return response()->json($result);
         }
         $menu->status = 2;
-        $menu->updated_by =  1;
+        $menu->updated_by =  Auth::id();
         $menu->updated_at =  date('Y-m-d H:i:s');
         if ($menu->save()) {
+            $this->writeLog('restore', 'menus', $menu->id, 'Khôi phục menu từ thùng rác');
             $result = [
                 'status' => true,
                 'message' => 'Thay đổi thành công',
@@ -219,7 +236,11 @@ class MenuController extends Controller
             ];
             return response()->json($result);
         }
+        
+        $idLog = $menu->id;
+        $menuData = $menu->toJson();
         if ($menu->delete()) {
+            $this->writeLog('destroy', 'menus', $idLog, 'Xóa hoàn toàn menu: ' . $menuData);
             $result = [
                 'status' => true,
                 'message' => 'Xóa thành công',

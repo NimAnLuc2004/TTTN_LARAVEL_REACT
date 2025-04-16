@@ -10,9 +10,9 @@ class NewCommentController extends Controller
     public function index()
     {
         $newcoms = NewsComment::query()
-            ->orderBy('created_at', 'ASC')
+            ->orderBy('created_at', 'DESC')
             ->select("id", "user_id", "news_id", "comment")
-            ->get();
+            ->paginate(10); 
         $result = [
             'status' => true,
             'message' => 'Tải dữ liệu thành công',
