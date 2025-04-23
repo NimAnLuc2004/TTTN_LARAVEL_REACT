@@ -10,6 +10,7 @@ import {
   FaStore,
   FaStar,
   FaBell,
+  FaChevronDown,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { IoTicketOutline } from "react-icons/io5";
@@ -58,6 +59,13 @@ const Sidebar = () => {
             <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
               Sản phẩm
             </span>
+            {isSidebarOpen && (
+              <FaChevronDown
+                className={`transition-transform ${
+                  openMenu === "products" ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
           {openMenu === "products" && (
             <ul className="pl-6 mt-2 space-y-2">
@@ -100,6 +108,13 @@ const Sidebar = () => {
             <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
               Đơn hàng
             </span>
+            {isSidebarOpen && (
+              <FaChevronDown
+                className={`transition-transform ${
+                  openMenu === "orders" ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
           {openMenu === "orders" && (
             <ul className="pl-6 mt-2 space-y-2">
@@ -132,6 +147,13 @@ const Sidebar = () => {
             <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
               Khách hàng
             </span>
+            {isSidebarOpen && (
+              <FaChevronDown
+                className={`transition-transform ${
+                  openMenu === "customers" ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
           {openMenu === "customers" && (
             <ul className="pl-6 mt-2 space-y-2">
@@ -159,12 +181,24 @@ const Sidebar = () => {
             <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
               Tin tức
             </span>
+            {isSidebarOpen && (
+              <FaChevronDown
+                className={`transition-transform ${
+                  openMenu === "news" ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
           {openMenu === "news" && (
             <ul className="pl-6 mt-2 space-y-2">
               <li>
                 <Link to="/admin/new" className="hover:text-gray-300">
                   Bài viết
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/topic" className="hover:text-gray-300">
+                  Chủ Đề
                 </Link>
               </li>
               <li>
@@ -175,6 +209,7 @@ const Sidebar = () => {
             </ul>
           )}
         </li>
+
         {/* Quản lý liên hệ */}
         <li className="flex items-center space-x-2 w-full text-left">
           <FaPhone />
@@ -184,24 +219,27 @@ const Sidebar = () => {
             </Link>
           </span>
         </li>
-         {/* Quản lý message */}
-         <li className="flex items-center space-x-2 w-full text-left">
-         <FaMessage />
+
+        {/* Quản lý message */}
+        <li className="flex items-center space-x-2 w-full text-left">
+          <FaMessage />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
             <Link to="/admin/message" className="hover:text-gray-300">
               Message
             </Link>
           </span>
         </li>
+
         {/* Quản lý nhập hàng */}
         <li className="flex items-center space-x-2 w-full text-left">
           <FaStore />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-          <Link to="/admin/productstore/add" className="hover:text-gray-300">
-          Nhập Hàng
+            <Link to="/admin/productstore/add" className="hover:text-gray-300">
+              Nhập Hàng
             </Link>
           </span>
         </li>
+
         {/* Cấu hình */}
         <li>
           <button
@@ -212,6 +250,13 @@ const Sidebar = () => {
             <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
               Cấu hình
             </span>
+            {isSidebarOpen && (
+              <FaChevronDown
+                className={`transition-transform ${
+                  openMenu === "settings" ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
           {openMenu === "settings" && (
             <ul className="pl-6 mt-2 space-y-2">
@@ -233,11 +278,14 @@ const Sidebar = () => {
             </ul>
           )}
         </li>
-           {/* Quản lý đánh giá */}
-           <li className="flex items-center space-x-2 w-full text-left">
+
+        {/* Quản lý đánh giá */}
+        <li className="flex items-center space-x-2 w-full text-left">
           <FaStar />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-            <Link to="/admin/review" className="hover:text-gray-300">Đánh giá</Link>
+            <Link to="/admin/review" className="hover:text-gray-300">
+              Đánh giá
+            </Link>
           </span>
         </li>
 
@@ -245,7 +293,9 @@ const Sidebar = () => {
         <li className="flex items-center space-x-2 w-full text-left">
           <FaShoppingCart />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-            <Link to="/admin/cart" className="hover:text-gray-300">Giỏ hàng</Link>
+            <Link to="/admin/cart" className="hover:text-gray-300">
+              Giỏ hàng
+            </Link>
           </span>
         </li>
 
@@ -253,13 +303,19 @@ const Sidebar = () => {
         <li className="flex items-center space-x-2 w-full text-left">
           <FaBell />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-            <Link to="/admin/notification" className="hover:text-gray-300">Thông báo</Link>
+            <Link to="/admin/notification" className="hover:text-gray-300">
+              Thông báo
+            </Link>
           </span>
         </li>
+
+        {/* Quản lý phiếu giảm giá */}
         <li className="flex items-center space-x-2 w-full text-left">
-        <IoTicketOutline />
+          <IoTicketOutline />
           <span className={`${isSidebarOpen ? "block" : "hidden"}`}>
-            <Link to="/admin/discount" className="hover:text-gray-300">Phiếu giảm giá</Link>
+            <Link to="/admin/discount" className="hover:text-gray-300">
+              Phiếu giảm giá
+            </Link>
           </span>
         </li>
       </ul>

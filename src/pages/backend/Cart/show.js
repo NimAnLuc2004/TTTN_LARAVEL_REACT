@@ -37,7 +37,7 @@ const ShowCart = () => {
     <div className="bg-white shadow rounded-md p-6">
       <h2 className="text-lg font-semibold mb-4">Chi tiết giỏ hàng</h2>
       <div className="mb-4">
-        <strong>Tên sản phẩm:</strong> {productname}
+        <strong>Tên sản phẩm:</strong> {productname} / ID:{cart.product_id}
       </div>
       <div className="mb-4">
         <strong>Id User:</strong> {cart.user_id}

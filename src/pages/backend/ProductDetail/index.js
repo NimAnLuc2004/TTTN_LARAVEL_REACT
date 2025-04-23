@@ -23,8 +23,10 @@ const ProductDetailList = () => {
     (async () => {
       try {
         const result = await ProductDetailService.index(page);
+        console.log(result)
         if (result && result.prodetail.data && result.prodetail.data.length > 0) {
           setProductDetails(result.prodetail.data??[]);
+ 
           setLastPage(result.prodetail.last_page);
         } else {
           setProductDetails([]);
@@ -134,7 +136,7 @@ const ProductDetailList = () => {
       <div className="flex items-center justify-between mb-4">
         <input
           type="text"
-          placeholder="Tìm theo tên chi tiết sản phẩm..."
+          placeholder="Tìm theo tên sản phẩm..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
@@ -183,9 +185,17 @@ const ProductDetailList = () => {
               </th>
               <th
                 className="p-4 cursor-pointer"
-                onClick={() => handleSort("product_name")}
+                onClick={() => handleSort("name")}
               >
                 Tên chi tiết sản phẩm{" "}
+                {sortConfig.key === "name" &&
+                  (sortConfig.direction === "asc" ? "▲" : "▼")}
+              </th>
+              <th
+                className="p-4 cursor-pointer"
+                onClick={() => handleSort("product_name")}
+              >
+                Tên sản phẩm{" "}
                 {sortConfig.key === "product_name" &&
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
@@ -221,6 +231,7 @@ const ProductDetailList = () => {
                       />
                       </td>
                       <td className="p-4">{productdetail.id}</td>
+                      <td className="p-4">{productdetail.name}</td>
                       <td className="p-4">{productdetail.product_name}</td>
                       <td className="p-4">{productdetail.color}</td>
                       <td className="p-4">{productdetail.size} </td>

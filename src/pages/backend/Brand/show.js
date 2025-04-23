@@ -48,8 +48,9 @@ const ShowBrand = () => {
       <div className="mb-4">
         <strong>Ngày cập nhật:</strong> {formatDate(brand.updated_at)}
       </div>
+      
       <div className="mb-4">
-        <strong>Người tạo:</strong> {brand.created_at}
+        <strong>Người tạo:</strong> {brand.created_by}
       </div>
       <div className="mb-4">
         <strong>Người cập nhật:</strong> {brand.updated_by}

@@ -13,7 +13,7 @@ const ProductEdit = () => {
   const [name, setProductName] = useState("");
   const [brand_id, setProductBrand] = useState("");
   const [categories, setCategories] = useState([]);
-  const [price, setProductPrice] = useState("");
+
   const [description, setProductDescription] = useState("");
   const [status, setStatus] = useState("1");
   const [brands, setBrands] = useState([]);
@@ -28,7 +28,7 @@ const ProductEdit = () => {
         const result = await ProductService.show(id);
         setProductName(result.product.name);
         setProductBrand(result.product.brand_id);
-        setProductPrice(result.product.price);
+
         setProductDescription(result.product.description);
         setStatus(result.product.status);
         setCategoryId(result.product.category_id || []);
@@ -82,7 +82,7 @@ const ProductEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!name || !brand_id || categoryId.length === 0 || !price) {
+    if (!name || !brand_id || categoryId.length === 0 ) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
@@ -92,7 +92,6 @@ const ProductEdit = () => {
     formData.append("description", description || ""); // Handle empty description
     formData.append("status", status);
     formData.append("brand_id", brand_id);
-    formData.append("price", price);
     formData.append("category_id", JSON.stringify(categoryId));
     image_url.forEach((image) => {
       formData.append("image_url[]", image); // Multiple file upload
@@ -101,9 +100,9 @@ const ProductEdit = () => {
     try {
       const response = await ProductService.update(id, formData);
       console.log("Dữ liệu gửi đi:", Object.fromEntries(formData));
-      console.log("Phản hồi từ server:", response);
+      if (response.status) {
       toast.success("Sản phẩm đã được cập nhật thành công!");
-      navigate("/admin/product");
+      navigate("/admin/product");}
     } catch (error) {
       console.error("Lỗi khi cập nhật sản phẩm:", error);
       toast.error("Có lỗi xảy ra khi cập nhật sản phẩm.");
@@ -198,19 +197,6 @@ const ProductEdit = () => {
                 ))}
               </div>
             )}
-          </div>
-          {/* Giá sản phẩm */}
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Giá sản phẩm
-            </label>
-            <input
-              className="shadow border rounded w-full py-2 px-3 text-gray-700"
-              type="number"
-              value={price}
-              onChange={(e) => setProductPrice(e.target.value)}
-              placeholder="Nhập giá sản phẩm"
-            />
           </div>
 
           {/* Mô tả */}

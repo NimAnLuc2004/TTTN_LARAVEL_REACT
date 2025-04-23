@@ -52,7 +52,7 @@ const ShowDiscount = () => {
         <strong>Ngày cập nhật:</strong> {formatDate(discount.updated_at)}
       </div>
       <div className="mb-4">
-        <strong>Người tạo:</strong> {discount.created_at}
+        <strong>Người tạo:</strong> {discount.created_by}
       </div>
       <div className="mb-4">
         <strong>Người cập nhật:</strong> {discount.updated_by}

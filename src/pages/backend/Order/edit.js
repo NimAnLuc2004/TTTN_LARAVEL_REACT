@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import OrderService from "../../../services/Orderservice";
 import { Link, useParams } from "react-router-dom";
-import ProductService from "../../../services/Productservice";
+import ProductDetailService from "../../../services/ProductDetailservice ";
 import { toast } from "react-toastify"; 
 import "react-toastify/dist/ReactToastify.css"; 
 
 const OrderEdit = () => {
   const { id } = useParams();
   const [orderItems, setOrderItems] = useState([]);
-  const [products, setProducts] = useState([]);
+  const [productdetails, setProductdetails] = useState([]);
 
   useEffect(() => {
     const fetchOrderItems = async () => {
@@ -26,16 +26,16 @@ const OrderEdit = () => {
     fetchOrderItems();
   }, [id]);
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProductdetails = async () => {
       try {
-        const response = await ProductService.index();
-        setProducts(response.products || []);
+        const response = await ProductDetailService.index();
+        setProductdetails(response.prodetail || []);
       } catch (error) {
         console.error("Lỗi khi tải danh sách sản phẩm:", error);
         toast.error("Có lỗi khi tải sản phẩm!");
       }
     };
-    fetchProducts();
+    fetchProductdetails();
   }, []);
 
   const handleInputChange = (index, field, value) => {
@@ -46,8 +46,13 @@ const OrderEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await OrderService.update({ order_items: orderItems }, id);
+      const response=await OrderService.update({ order_items: orderItems }, id);
+      if (response.status) {
       toast.success("Cập nhật sản phẩm trong đơn hàng thành công!");
+      }
+      else{
+        toast.error("Có lỗi xảy ra khi cập nhật sản phẩm.");
+      }
     } catch (error) {
       console.error("Lỗi khi cập nhật sản phẩm trong đơn hàng:", error);
       toast.error("Có lỗi xảy ra khi cập nhật sản phẩm.");
@@ -80,16 +85,16 @@ const OrderEdit = () => {
                 Sản phẩm
               </label>
               <select
-                value={item.product_id}
+                value={item.productdetail_id}
                 onChange={(e) =>
-                  handleInputChange(index, "product_id", e.target.value)
+                  handleInputChange(index, "productdetail_id", e.target.value)
                 }
                 className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
               >
                 <option value="">-- Chọn sản phẩm --</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
+                {productdetails.map((productdetail) => (
+                  <option key={productdetail.id} value={productdetail.id}>
+                    {productdetail.name}
                   </option>
                 ))}
               </select>

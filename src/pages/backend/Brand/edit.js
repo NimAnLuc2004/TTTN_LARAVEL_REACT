@@ -52,8 +52,13 @@ const BrandEdit = () => {
 
     try {
       const response = await BrandService.update(formData, id); // Gọi API để update thương hiệu
+      if (response.status) {
       toast.success("Cập nhật thương hiệu thành công!");
       setMessage("Cập nhật thương hiệu thành công!");
+      }
+      else{
+        toast.error(response.message);
+      }
     } catch (error) {
       console.error("Error updating brand:", error);
       if (error.response && error.response.data && error.response.data.brands) {

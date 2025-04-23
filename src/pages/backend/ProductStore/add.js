@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductService from "../../../services/Productservice";
+import ProductDetailservice from "../../../services/ProductDetailservice ";
 import ProductStoreservice from "../../../services/ProductStoreservice";
 import { IoEyeSharp } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
@@ -25,11 +25,11 @@ const ProductStoreAdd = () => {
 
   const fetchAllProducts = async () => {
     try {
-      const result = await ProductService.index();
+      const result = await ProductDetailservice.index();
       const result1 = await ProductStoreservice.index(page);
 
       setStore(result1?.productstore.data || []);
-      setProductList(result?.products || []);
+      setProductList(result?.prodetail || []);
 
 
       setLastPage(result1.productstore.last_page);
@@ -132,8 +132,8 @@ const ProductStoreAdd = () => {
     };
     try {
       const result = await ProductStoreservice.insert(productstore);
-      console.log(result);
       if (result.status) {
+        //reset from
         toast.success("Nhập hàng thành công!");
         setProductName("");
         setPriceroot("");
@@ -228,20 +228,20 @@ const ProductStoreAdd = () => {
                 </ul>
               )}
             </div>
-            {/* Giá Bán */}
+            {/* Giá Nhập */}
             <div>
               <label
                 className="block text-gray-700 text-sm font-bold mb-2"
                 htmlFor="priceroot"
               >
-                Giá Bán
+                Giá Nhập
               </label>
               <input
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="priceroot"
                 type="number"
                 step="1"
-                placeholder="Nhập giá bán"
+                placeholder="Nhập giá nhập"
                 value={price_root}
                 onChange={(e) => setPriceroot(e.target.value)}
                 required />

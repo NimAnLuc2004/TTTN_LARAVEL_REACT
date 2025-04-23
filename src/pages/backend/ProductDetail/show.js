@@ -44,6 +44,9 @@ const ProductdetailShow = () => {
             <span className="font-semibold">ID Sản phẩm:</span> {productdetail.product_id}
           </div>
           <div>
+            <span className="font-semibold">Tên chi tiết sản phẩm:</span> {productdetail.name}
+          </div>
+          <div>
             <span className="font-semibold">Màu:</span> 
             <span
               className="inline-block w-5 h-5 ml-2 rounded-full border"
@@ -56,10 +59,10 @@ const ProductdetailShow = () => {
             <span className="font-semibold">Size:</span> {productdetail.size}
           </div>
           <div>
-            <span className="font-semibold">Số lượng:</span> {productdetail.stock}
+            <span className="font-semibold">Số lượng:</span> {productdetail.qty}
           </div>
           <div>
-            <span className="font-semibold">Giá:</span> {productdetail.price} VND
+            <span className="font-semibold">Giá:</span> {productdetail.price_root} VND
           </div>
           <div>
             <span className="font-semibold">Ngày tạo:</span> {formatDate(productdetail.created_at)}

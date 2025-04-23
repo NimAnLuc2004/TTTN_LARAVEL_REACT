@@ -32,7 +32,8 @@ const BrandAdd = () => {
 
     try {
       const response = await BrandService.insert(formData);
-      console.log("Response from API:", response);
+
+      if (response.status) {
       setMessage("Thêm brand thành công!");
       toast.success("Thêm brand thành công!", { position: "top-right" });
       // Reset form
@@ -42,6 +43,10 @@ const BrandAdd = () => {
 
       setDescription("");
       setStatus(1);
+      }
+      else{
+        toast.error(response.message)
+      }
     } catch (error) {
       console.error("Error adding brand:", error);
 

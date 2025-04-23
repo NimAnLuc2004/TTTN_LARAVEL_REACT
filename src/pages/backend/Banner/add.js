@@ -35,7 +35,7 @@ const BannerAdd = () => {
 
     try {
       const response = await BannerService.insert(formData);
-      console.log("Response from API:", response);
+      if (response.status) {
       setMessage("Thêm banner thành công!");
       toast.success("Thêm banner thành công!");
       // Reset form
@@ -45,6 +45,10 @@ const BannerAdd = () => {
       setSortOrder(1);
       setDescription("");
       setStatus(1);
+      }
+      else{
+        toast.error(response.message)
+      }
     } catch (error) {
       console.error("Error adding banner:", error);
 

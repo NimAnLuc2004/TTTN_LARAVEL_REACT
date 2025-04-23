@@ -46,15 +46,20 @@ const ProductShow = () => {
               ? product.categories.map((category) => category.name).join(", ")
               : product.categories?.name || "Không có"}
           </div>
+          <div className="mb-4">
+            <strong>Người tạo:</strong> {product.created_by}
+          </div>
+          <div className="mb-4">
+            <strong>Người cập nhật:</strong> {product.updated_by}
+          </div>
           <div>
             <strong>Thương hiệu:</strong> {product.brand?.name || "Không có"}
           </div>
-          <div>
-            <strong>Giá:</strong> {product.price.toLocaleString()} VND
-          </div>
+
           <div className="col-span-2">
             <strong>Mô tả:</strong> {product.description}
           </div>
+
           <div className="mb-4">
             <strong>Ngày tạo:</strong> {formatDate(product.created_at)}
           </div>

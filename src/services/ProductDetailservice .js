@@ -2,10 +2,11 @@ import httpAxios from "./httpAxios";
 import { getAuthToken } from "./Auth";
 
 const ProductdetailService = {
-    index: async (page = 1) => {
+    index: async (page = null) => {
         const token = getAuthToken();
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-        return await httpAxios.get(`productdetail?page=${page}`, config);
+        const url = page ? `productdetail?page=${page}` : `productdetail`;
+        return await httpAxios.get(url, config);
     },
     insert: async (data) => {
         const token = getAuthToken();

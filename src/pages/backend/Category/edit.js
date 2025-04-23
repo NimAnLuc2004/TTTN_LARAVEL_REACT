@@ -64,10 +64,13 @@ const CategoryEdit = () => {
 
     try {
       const response = await CategoryService.update(formData, id);
-      console.log("Response from API:", response);
+      if (response.status) {
       setMessage("Cập nhật danh mục thành công!");
       toast.success("Cập nhật danh mục thành công!");
-
+      }
+      else{
+        toast.error(response.message);
+      }
       // Reset các trường sau khi cập nhật thành công (nếu cần)
     } catch (error) {
       console.error("Error updating category:", error);

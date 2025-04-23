@@ -33,8 +33,16 @@ const DiscountEdit = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate expiration date
+    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+    if (valid < today) {
+      toast.error("Ngày hết hạn không được nhỏ hơn ngày hôm nay!", { position: "top-right" });
+      return;
+    }
+
     try {
-      await DiscountService.update(
+      const response = await DiscountService.update(
         {
           code,
           discount_percent: percent,
@@ -43,8 +51,11 @@ const DiscountEdit = () => {
         },
         id
       );
-
-      toast.success("Cập nhật mã giảm giá thành công!");
+      if (response.status) {
+        toast.success("Cập nhật mã giảm giá thành công!");
+      } else {
+        toast.error(response.message);
+      }
     } catch (error) {
       console.error("Error updating discount:", error);
       toast.error("Có lỗi xảy ra khi cập nhật mã giảm giá!");

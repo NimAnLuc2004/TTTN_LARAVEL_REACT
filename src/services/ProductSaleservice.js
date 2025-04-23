@@ -7,11 +7,6 @@ const ProductSaleService = {
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
         return await httpAxios.get(`productsale?page=${page}`, config);
     },
-    trash: async () => {
-        const token = getAuthToken();
-        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-        return await httpAxios.get(`productsale/trash`, config);
-    },
     show: async (id) => {
         const token = getAuthToken();
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};

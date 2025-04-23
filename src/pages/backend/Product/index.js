@@ -210,14 +210,6 @@ const ProductList = () => {
                 {sortConfig.key === "name" &&
                   (sortConfig.direction === "asc" ? "▲" : "▼")}
               </th>
-              <th
-                className="p-4 cursor-pointer"
-                onClick={() => handleSort("price")}
-              >
-                Giá{" "}
-                {sortConfig.key === "price" &&
-                  (sortConfig.direction === "asc" ? "▲" : "▼")}
-              </th>
                 <th className="p-4">Hình ảnh</th>
                 <th className="p-4">Tên danh mục</th>
 
@@ -258,7 +250,6 @@ const ProductList = () => {
                       </td>
                       <td className="p-4">{product.id}</td>
                       <td className="p-4">{product.name}</td>
-                      <td className="p-4">{product.price} VND</td>
                       <td className="p-4">
                         <img
                           className="w-16 h-16 object-cover"
@@ -276,7 +267,7 @@ const ProductList = () => {
                           : product.categories.name}
                       </td>
 
-                      <td className="p-4">{product.brand.name}</td>
+                      <td className="p-4">{product.brand?.name || "Không có dữ liệu"}</td>
                       <td className="p-4">{jsxStatus}</td>
                       <td className="p-4">
                         <Link

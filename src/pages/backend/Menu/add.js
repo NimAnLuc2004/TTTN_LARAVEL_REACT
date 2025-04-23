@@ -27,12 +27,9 @@ const MenuAdd = () => {
         const brandRes = await BrandService.index();
         const categoryRes = await CategoryService.index();
         const newRes = await NewService.index();
-        console.log(categoryRes)
-        const newItems = newRes.new.filter((item) => item.type === "new");
-
         setBrands(brandRes.brands);
         setCategories(categoryRes.categories);
-        setNews(newItems);
+        setNews(newRes.new);
       } catch (error) {
         console.error("Error fetching data", error);
       }
@@ -68,9 +65,13 @@ const MenuAdd = () => {
 
     try {
       const result = await MenuService.insert(menu);
-      console.log(result);
+      if (result.status) {
       toast.success(" Menu đã được thêm thành công!");
       resetForm();
+      }
+      else{
+        toast.error(result.message);
+      }
     } catch (error) {
       console.error("Error creating menu:", error);
       toast.error(" Có lỗi xảy ra khi thêm menu.");
@@ -100,8 +101,7 @@ const MenuAdd = () => {
     setTableid(item.id);
 
     let newLink = "";
-    const slug = convertToSlug(item.name || item.title);  // Chuyển đổi tên thành slug
-
+    const slug = convertToSlug(item.name || item.title); 
     switch (type) {
       case "brand":
         newLink = `http://localhost:3000/thuong-hieu/${slug}`;

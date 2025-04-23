@@ -67,7 +67,6 @@ const ProductTrash = () => {
               <tr key={product.id} className="border-b">
                 <td className="p-4">{index + 1}</td>
                 <td className="p-4">{product.name}</td>
-                <td className="p-4">{product.price.toLocaleString()} VND</td>
                 <td className="p-4">
                   <button
                     className="bg-green-500 py-1 px-2 mx-0.5 text-white rounded-md hover:bg-green-600 transition"

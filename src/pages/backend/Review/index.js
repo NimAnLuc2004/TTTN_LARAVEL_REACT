@@ -158,14 +158,6 @@ const [selectedIds, setSelectedIds] = useState([]);
               </th>
               <th
                 className="p-4 cursor-pointer"
-                onClick={() => handleSort("id")}
-              >
-                Id{" "}
-                {sortConfig.key === "id" &&
-                  (sortConfig.direction === "asc" ? "▲" : "▼")}
-              </th>
-              <th
-                className="p-4 cursor-pointer"
                 onClick={() => handleSort("product_name")}
               >
                 Tên sản phẩm{" "}

@@ -54,9 +54,9 @@ const UserAdd = () => {
      
       const response = await UserService.insert(formData);
       setMessage(response.message);
-      toast.success("Tài khoản đã được thêm thành công!");
       // Nếu thêm thành công, reset form
       if (response.status) {
+        toast.success("Tài khoản đã được thêm thành công!");
         setName("");
         setPassword("");
         setImage([]);

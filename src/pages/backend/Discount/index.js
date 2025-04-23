@@ -106,7 +106,7 @@ const DiscountList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa phiếu giảm giá này?")) {
       try {
-        await DiscountService.destroy(id); // Gọi API để xóa discount
+        await DiscountService.delete(id); // Gọi API để xóa discount
         setDiscounts(discounts.filter((discount) => discount.id !== id)); // Cập nhật state để loại bỏ discount đã xóa
         toast.success("Xóa phiếu giảm giá thành công!");
       } catch (error) {

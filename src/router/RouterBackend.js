@@ -82,6 +82,7 @@ import ShowMessage from "../pages/backend/Message/show";
 import  ShowNewCommentNew from "../pages/backend/NewComment/shownew";
 import ShowNewCommentUser from "../pages/backend/NewComment/showuser";
 import NewCommentList from "../pages/backend/NewComment";
+import NewTopicAdd from "../pages/backend/NewTopic";
 
 
 
@@ -113,6 +114,8 @@ const RouterBackend = [
   { path: "/admin/newcomment", element: <NewCommentList /> },
   { path: "/admin/newcomment/showuser/:id", element: <ShowNewCommentUser /> },
   { path: "/admin/newcomment/shownew/:id", element: <ShowNewCommentNew /> },
+//topic
+{ path: "/admin/topic", element: <NewTopicAdd /> },
   //wishlist
   { path: "/admin/wishlist", element: <WishListList /> },
   

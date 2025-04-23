@@ -10,7 +10,7 @@ const ProductAdd = () => {
   const [name, setProductName] = useState("");
   const [brand_id, setProductBrand] = useState("");
   const [categories, setCategories] = useState([]);
-  const [price, setProductPrice] = useState("");
+
   const [description, setProductDescription] = useState("");
   const [status, setStatus] = useState("1");
   const [brands, setBrands] = useState([]);
@@ -34,7 +34,7 @@ const ProductAdd = () => {
         toast.error("Không thể tải danh sách thương hiệu!");
       }
     };
-  
+
     const fetchCategories = async () => {
       try {
         const result = await CategoryService.index();
@@ -44,21 +44,18 @@ const ProductAdd = () => {
         toast.error("Không thể tải danh sách danh mục!");
       }
     };
-  
+
     fetchBrands();
     fetchCategories();
   }, []);
-  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-
-    if (!name || !brand_id || category_id.length === 0 || !price) {
+    if (!name || !brand_id || category_id.length === 0) {
       alert("Vui lòng điền đầy đủ thông tin bắt buộc.");
       return;
     }
-
 
     const product = new FormData();
 
@@ -83,16 +80,17 @@ const ProductAdd = () => {
     product.append("status", status);
     product.append("category_id", JSON.stringify(category_id));
     product.append("brand_id", brand_id);
-    product.append("price", price);
 
     try {
-      console.log(product)
       const result = await ProductService.insert(product);
-      console.log(result);
-      toast.success("Sản phẩm đã được thêm thành công!");
-      setProductName("");
-      setProductPrice("");
-      setProductDescription("");
+
+      if (result.status) {
+
+        //reset from
+        toast.success("Sản phẩm đã được thêm thành công!");
+        setProductName("");
+        setProductDescription("");
+      }
     } catch (error) {
       console.error("Error creating product:", error);
       toast.error("Có lỗi xảy ra khi thêm sản phẩm!");
@@ -193,24 +191,6 @@ const ProductAdd = () => {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Giá sản phẩm */}
-          <div>
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="price"
-            >
-              Giá sản phẩm
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="price"
-              type="number"
-              value={price}
-              onChange={(e) => setProductPrice(e.target.value)}
-              placeholder="Nhập giá sản phẩm"
-            />
           </div>
 
           {/* Mô tả sản phẩm */}

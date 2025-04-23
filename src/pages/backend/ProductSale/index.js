@@ -124,6 +124,15 @@ const ProductSaleAdd = () => {
 
   const handleAddSale = async (e) => {
     e.preventDefault();
+    if (!startDate || !endDate) {
+      toast.error("Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc.");
+      return;
+    }
+  
+    if (new Date(startDate) >= new Date(endDate)) {
+      toast.error("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+      return;
+    }
     const discountValue = document.getElementById("discountPercent").value;
     const productSaleData = {
       product_id: productId,
@@ -184,14 +193,6 @@ const ProductSaleAdd = () => {
       </div>
       <div className="flex flex-row bg-gray-100">
         <div className="basis-4/12 bg-white shadow-md rounded-md p-8">
-          <div className="py-3">
-            <Link
-              to="/admin/productsale"
-              className="bg-red-500 text-white px-4 py-2 rounded-md"
-            >
-              Quay lại
-            </Link>
-          </div>
           <h1 className="text-3xl font-bold mb-6 text-center">Thêm Giảm Giá</h1>
           <form className="grid grid-cols-2 gap-6 relative">
             <div className="relative">

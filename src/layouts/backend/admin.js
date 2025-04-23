@@ -4,22 +4,22 @@ import { Link, useNavigate } from "react-router-dom";
 import UserService from "../../services/Userservice";
 import "react-toastify/dist/ReactToastify.css";
 import { toast } from "react-toastify";
-import Notificationservice from "../../services/Notificationservice ";
+import Logservice from "../../services/Logservice";
 
 const AdminMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [isLogOpen, setIsLogOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [notifications, setNotifications] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [lastPage, setLastPage] = useState(1);
   const navigate = useNavigate();
 
   const urlImage = "http://127.0.0.1:8000/images/";
   const user = JSON.parse(localStorage.getItem("user"));
+
   const handleLogout = async () => {
     try {
       await UserService.logout();
-
       localStorage.removeItem("user");
       localStorage.removeItem("token");
       toast.success("Đăng xuất thành công!");
@@ -28,64 +28,60 @@ const AdminMenu = () => {
       console.error("Logout error:", error);
     }
   };
-  // Lấy thông báo
-  const fetchAllNotifications = async () => {
-    try {
-      const result = await Notificationservice.index(page);
-      setNotifications(result?.noti.data || []);
-      setLastPage(result.noti.last_page);
 
-      if (result.noti.data.length === 0) {
-        toast.info("Chưa có thông báo nào.");
+  // Lấy nhật ký
+  const fetchAllLogs = async () => {
+    try {
+      const result = await Logservice.index();
+      setLogs(result?.data || []);
+      console.log(result);
+      if (result.data.length === 0) {
+        toast.info("Chưa có nhật ký nào.");
       }
     } catch (error) {
-      console.error("Lỗi khi tải thông báo:", error);
+      console.error("Lỗi khi tải nhật ký:", error);
     }
   };
 
-  // Fetch thông báo khi mở menu
+  // Fetch nhật ký khi mở menu
   useEffect(() => {
-    if (isNotifOpen) {
-      fetchAllNotifications(); // Lấy thông báo khi mở
+    if (isLogOpen) {
+      fetchAllLogs(); // Lấy nhật ký khi mở
     }
-  }, [isNotifOpen, page]);
+  }, [isLogOpen, page]);
 
   let userImage = user.image;
   if (typeof userImage === "string") {
     userImage = JSON.parse(userImage); // Chuyển chuỗi JSON thành mảng
   }
 
-  // Lấy ảnh đầu tiên từ mảng
-
   return (
     <div className="relative flex items-center space-x-4">
-      {/* Nút Thông báo */}
+      {/* Nút Nhật ký */}
       <div className="relative">
         <button
-          onClick={() => setIsNotifOpen(!isNotifOpen)}
+          onClick={() => setIsLogOpen(!isLogOpen)}
           className="text-black hover:text-blue-600 rounded-lg p-4 bg-white focus:outline-none"
         >
           <FaBell className="text-2xl text-orange-500" />
         </button>
-        {isNotifOpen && (
+        {isLogOpen && (
           <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg z-50">
             <div className="p-4 border-b font-semibold text-gray-700">
-              Thông báo
+              Nhật ký
             </div>
             <ul className="max-h-60 overflow-y-auto">
-              {notifications.slice(0, 5).map((item) => (
+              {logs.slice(0, 5).map((item) => (
                 <li
                   key={item.id}
                   className="px-4 py-2 text-sm text-blue-500 hover:bg-gray-100 cursor-pointer"
                 >
-                  {item.message.length > 30
-                    ? item.message.substring(0, 30) + "..."
-                    : item.message}
+                  Hành động: {item.action} / Bảng: {item.table_name}
                 </li>
               ))}
             </ul>
             <div className="px-4 py-2 text-sm text-blue-500 hover:underline cursor-pointer">
-              <Link to="/admin/notification">Xem tất cả</Link>
+              <Link to="/admin/log">Xem tất cả</Link>
             </div>
           </div>
         )}

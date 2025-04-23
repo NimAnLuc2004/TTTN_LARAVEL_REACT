@@ -43,6 +43,9 @@ const ShowNew = () => {
         <strong>Mô tả:</strong> {newData.content}
       </div>
       <div className="mb-4">
+        <strong>Id chủ đề:</strong> {newData.topic_id}
+      </div>
+      <div className="mb-4">
         <strong>Ngày tạo:</strong> {formatDate(newData.created_at)}
       </div>
       <div className="mb-4">

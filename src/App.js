@@ -1,6 +1,6 @@
 import { Navigate, useRoutes } from "react-router-dom";
 import LayoutFrontend from "./layouts/frontend/Main";
-import "./assets/scss/app.scss"
+
 import LayoutBackend from "./layouts/backend";
 import NotFound from "./pages/NotFound";
 import RouterFrontend from "./router/RouterFrontend";

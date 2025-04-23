@@ -23,6 +23,7 @@ const ContactList = () => {
       try {
         const response = await ContactService.index(page);
         setContacts(response.contacts.data ?? []);
+        console.log(response)
         setLastPage(response.contacts.last_page);
       } catch (error) {
         console.error("Error fetching contacts:", error);

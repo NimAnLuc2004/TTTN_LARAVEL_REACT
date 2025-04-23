@@ -38,7 +38,7 @@ const ContactEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-     await ContactService.update(
+    const result=await ContactService.update(
         {
           name,
           email,
@@ -49,8 +49,12 @@ const ContactEdit = () => {
         },
         id
       );
+      if (result.status) {
       toast.success("Cập nhật liên hệ thành công!");
-
+      }
+      else{
+        toast.error(result.message);
+      }
     } catch (error) {
       console.error("Error updating contact:", error);
       toast.error("Có lỗi xảy ra khi cập nhật liên hệ!");

@@ -32,11 +32,10 @@ const MenuEdit = () => {
           MenuService.show(id),
         ]);
 
-        const newItems = newRes.new.filter((item) => item.type === "new");
 
         setBrands(brandRes.brands);
         setCategories(categoryRes.categories);
-        setNews(newItems);
+        setNews(newRes.new);
 
         // Gán dữ liệu menu hiện tại
         const menu = menuRes.menu;
@@ -73,8 +72,12 @@ const MenuEdit = () => {
 
     try {
       const result = await MenuService.update(id, menu);
-      console.log(result);
+      if (result.status) {
       toast.success("Menu đã được cập nhật thành công!");
+      }
+      else{
+        toast.error(result.message);
+      }
     } catch (error) {
       console.error("Error updating menu:", error);
       toast.error("Có lỗi xảy ra khi cập nhật menu.");

@@ -14,6 +14,8 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useSearchParams } from "react-router-dom";
 
+
+
 const urlImage = "http://127.0.0.1:8000/images/";
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -25,6 +27,8 @@ const UserList = () => {
   const [lastPage, setLastPage] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page")) || 1;
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+
   useEffect(() => {
     (async () => {
       try {
@@ -88,7 +92,11 @@ const UserList = () => {
       toast.info("Vui lòng chọn ít nhất một mục để xóa.");
       return;
     }
-
+    if (currentUser && selectedIds.includes(parseInt(currentUser.id))) {
+      toast.warning("Không thể xóa tài khoản đang đăng nhập!");
+      return;
+    }
+  
     if (window.confirm("Bạn có chắc chắn muốn xóa các người dùng đã chọn?")) {
       try {
         await Promise.all(selectedIds.map((id) => UserService.delete(id)));
@@ -106,6 +114,10 @@ const UserList = () => {
   };
 
   const handleDelete = async (id) => {
+    if (currentUser && parseInt(currentUser.id) === id) {
+      toast.warning("Không thể xóa tài khoản đang đăng nhập!");
+      return;
+    }
     if (window.confirm("Bạn có chắc chắn muốn xóa thành viên này?")) {
       try {
         await UserService.delete(id);
@@ -120,6 +132,10 @@ const UserList = () => {
 
   // Hàm thay đổi trạng thái hoạt động
   const handleStatus = async (id) => {
+    if (currentUser && parseInt(currentUser.id) === id) {
+      toast.warning("Không thể thay đổi trạng thái tài khoản đang đăng nhập!");
+      return;
+    }
     try {
       await UserService.status(id);
       setUsers((prevUsers) =>

@@ -60,10 +60,21 @@ const ShowProductSale = () => {
                 {formatDate(productSale.updated_at)}
               </p>
             </div>
+
+            <div className="justify-between items-center">
+              <p className="text-gray-600">
+                <strong>Ngày bắt đầu:</strong> {productSale.start_date}
+              </p>
+              <p className="text-gray-600">
+                <strong>Ngày kết thúc:</strong>{" "}
+                {productSale.end_date}
+              </p>
+            </div>
             <div className="justify-between items-center">
               <p className="text-gray-600">
                 <strong>Người tạo:</strong> {productSale.created_by}
               </p>
+              
             </div>
             <div className="justify-between items-center">
               <p className="text-gray-600">

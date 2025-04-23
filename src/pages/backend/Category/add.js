@@ -46,7 +46,8 @@ const CategoryAdd = () => {
 
     try {
       const response = await CategoryService.insert(formData);
-      console.log("Response from API:", response);
+  
+      if (response.status) {
       setMessage("Thêm category thành công!");
       toast.success("Thêm danh mục thành công!");
       // Reset form
@@ -56,6 +57,10 @@ const CategoryAdd = () => {
       setParentId("");
 
       setStatus(1);
+      }else
+      {
+        toast.error(response.message);
+      }
     } catch (error) {
       console.error("Error adding category:", error);
 

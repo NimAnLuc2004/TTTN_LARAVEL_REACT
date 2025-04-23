@@ -15,20 +15,19 @@ const ProductDetailEdit = () => {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [size, setSize] = useState("");
-  const [stock, setStock] = useState(1);
+  const [name, setName] = useState(""); // Added name state
   const [price, setPrice] = useState("");
 
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
         const result = await ProductDetailService.show(id);
-        console.log(result)
         if (result) {
           setProductDetail(result.prodetail);
           setSelectedProduct(result.prodetail.product_id || "");
           setSelectedColor(result.prodetail.color || "");
           setSize(result.prodetail.size || "");
-          setStock(result.prodetail.stock || 1);
+          setName(result.prodetail.name || ""); // Set name from API
           setPrice(result.prodetail.price || "");
         }
       } catch (error) {
@@ -55,7 +54,7 @@ const ProductDetailEdit = () => {
       product_id: selectedProduct,
       color: selectedColor,
       size,
-      stock,
+      name, // Added name to updatedProductDetail
       price,
     };
 
@@ -100,7 +99,9 @@ const ProductDetailEdit = () => {
             <div className="flex gap-2">
               {colors.map((color) => (
                 <button
-                  key={color}
+                  key={
+
+color}
                   className={`w-10 h-10 rounded-full border-2 ${
                     selectedColor === color ? "border-black" : "border-gray-300"
                   }`}
@@ -123,12 +124,12 @@ const ProductDetailEdit = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">Số lượng</label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">Tên Chi Tiết</label>
             <input
               className="border rounded w-full py-2 px-3"
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div>

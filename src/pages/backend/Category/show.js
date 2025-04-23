@@ -52,6 +52,12 @@ const ShowCategory = () => {
         <strong>Ngày cập nhật:</strong> {formatDate(category.updated_at)}
       </div>
       <div className="mb-4">
+        <strong>Người tạo:</strong> {category.created_by}
+      </div>
+      <div className="mb-4">
+        <strong>Người cập nhật:</strong> {category.updated_by}
+      </div>
+      <div className="mb-4">
         <strong>Hình ảnh:</strong>
         <div className="flex space-x-4">
           {/* Lặp qua các hình ảnh nếu có */}

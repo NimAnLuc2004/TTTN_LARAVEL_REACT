@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { closeOutline } from 'ionicons/icons';
-import { IonIcon } from '@ionic/react';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
 
 class Modal extends Component {
     constructor(props) {
@@ -23,19 +22,14 @@ class Modal extends Component {
                         <div className="modal-close-overlay" data-modal-overlay="" />
                         <div className="modal-content">
                             <button className="modal-close-btn" onClick={this.handleCloseModal}>
-                                <IonIcon
-                                    icon={closeOutline}
-                                    role="img"
-                                    className="md hydrated"
-                                    aria-label="close outline"
-                                />
+                                <FontAwesomeIcon icon={faTimes} />
                             </button>
                             <div className="newsletter-img">
                                 <img
-                                    src={require("../../assets/images/newsletter.png")}
+                                    src={require("../../../assets/images/newsletter.png")}
                                     alt="subscribe newsletter"
-                                    width={400}
-                                    height={400}
+                                    width={500}
+                                    height={500}
                                 />
                             </div>
                             <div className="newsletter">
@@ -65,4 +59,5 @@ class Modal extends Component {
         );
     }
 }
-export default Modal
+
+export default Modal;

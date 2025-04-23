@@ -1,4 +1,4 @@
-// import Home from "../pages/frontend/Home"
+import Home from "../pages/frontend/home/index"
 // import PostDetail from "../pages/frontend/Post/postdetail";
 // import PostNew from "../pages/frontend/Post/postnew";
 // import Product from "../pages/frontend/Product"
@@ -13,7 +13,7 @@
 // import OrderHistory from "../pages/frontend/Customer/OrderDetail";
 
 const RouterFrontend=[
-    // { path:"/",element:<Home />},
+    { path:"/",element:<Home />},
     // { path:"/san-pham/",element:<Product/>},
     // { path:"/san-pham/:id",element:<Product/>},
     // { path: "/post_detail/:slug", element: <PostDetail /> },

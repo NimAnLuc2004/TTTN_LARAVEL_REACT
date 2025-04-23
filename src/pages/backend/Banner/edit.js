@@ -53,9 +53,13 @@ const BannerEdit = () => {
 
     try {
       const response = await BannerService.update( formData,id); // Gọi API để update banner
-      console.log("Response from API:", response);
+      if (response.status) {
       setMessage("Sửa banner thành công!");
       toast.success("Sửa banner thành công!");
+      }
+      else{
+        toast.error(response.message);
+      }
     } catch (error) {
       console.error("Error updating banner:", error);
       setMessage("Có lỗi xảy ra khi sửa banner.");

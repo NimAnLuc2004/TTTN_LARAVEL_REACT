@@ -2,10 +2,11 @@ import httpAxios from "./httpAxios";
 import { getAuthToken } from "./Auth";
 
 const NewService = {
-    index: async (page = 1) => {
+    index: async (page = null) => {
         const token = getAuthToken();
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-        return await httpAxios.get(`new?page=${page}`, config);
+        const url = page ? `new?page=${page}` : `new`;
+        return await httpAxios.get(url, config);
     },
     trash: async () => {
         const token = getAuthToken();

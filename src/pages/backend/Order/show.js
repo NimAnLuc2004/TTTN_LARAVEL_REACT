@@ -69,6 +69,12 @@ const OrderDetail = () => {
             <span className="font-semibold">ID Khách hàng:</span> {order.user_id}
           </div>
           <div>
+            <span className="font-semibold">Người tạo:</span> {order.created_by}
+          </div>
+          <div>
+            <span className="font-semibold">Người cập nhật:</span> {order.updated_by}
+          </div>
+          <div>
             <span className="font-semibold">Tổng giá tiền:</span> {formatCurrency(order.total)}
           </div>
           <div>

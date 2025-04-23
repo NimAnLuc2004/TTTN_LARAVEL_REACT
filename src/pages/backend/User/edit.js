@@ -15,6 +15,7 @@ const UserEdit = () => {
   const [role, setRole] = useState("");
   const [status, setStatus] = useState(1);
   const [message, setMessage] = useState("");
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,7 +62,22 @@ const UserEdit = () => {
     try {
       const response = await UserService.update(id, formData);
       setMessage(response.message);
-      toast.success("Cập nhật thông tin người dùng thành công!");
+      if (response.status) {
+    
+        toast.success("Cập nhật thông tin người dùng thành công!");
+        if (currentUser && parseInt(currentUser.id) === parseInt(id)) {
+          // Logout nếu người dùng chỉnh sửa chính mình
+          await UserService.logout();
+          localStorage.removeItem("user");
+          localStorage.removeItem("token"); // nếu bạn lưu token riêng
+          toast.info(
+            "Thông tin tài khoản đã thay đổi. Vui lòng đăng nhập lại!"
+          );
+          setTimeout(() => {
+            window.location.href = "admin/login"; // hoặc dùng useNavigate nếu muốn mượt hơn
+          }, 200);
+        }
+      }
     } catch (error) {
       console.error("Lỗi khi cập nhật người dùng:", error);
       setMessage("Có lỗi xảy ra khi cập nhật người dùng.");
@@ -160,36 +176,36 @@ const UserEdit = () => {
               onChange={(e) => setAddress(e.target.value)}
               required
             />
-             <div className="col-span-2">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Vai trò
-            </label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              required
-            >
-              <option value="">Chọn vai trò</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
-          </div>
+            <div className="col-span-2">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Vai trò
+              </label>
+              <select
+                className="w-full border rounded px-3 py-2"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="">Chọn vai trò</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+              </select>
+            </div>
 
-          <div className="col-span-2">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
-              Trạng thái
-            </label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              required
-            >
-              <option value="1">Kích hoạt</option>
-              <option value="2">Không kích hoạt</option>
-            </select>
-          </div>
+            <div className="col-span-2">
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Trạng thái
+              </label>
+              <select
+                className="w-full border rounded px-3 py-2"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                required
+              >
+                <option value="1">Kích hoạt</option>
+                <option value="2">Không kích hoạt</option>
+              </select>
+            </div>
           </div>
           <div className="col-span-2">
             <button

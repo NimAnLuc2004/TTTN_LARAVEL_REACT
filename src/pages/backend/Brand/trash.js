@@ -23,8 +23,10 @@ const TrashBrandList = () => {
     try {
       await BrandService.restore(id);
       setBrands(brands.filter((brand) => brand.id !== id));
+      toast.success("Khôi phục thương hiệu thành công!");
     } catch (error) {
       console.error("Error restoring brand:", error);
+      toast.error("Lỗi khi khôi phục thương hiệu!");
       toast.warning("Không thể tải danh sách thương hiệu!");
     }
   };
@@ -33,7 +35,7 @@ const TrashBrandList = () => {
     try {
       await BrandService.destroy(id);
       setBrands(brands.filter((brand) => brand.id !== id)); // Cập nhật state để loại bỏ brand đã xóa
-      toast.success("Khôi phục thương hiệu thành công!");
+      toast.error("Xóa vĩnh viễn thương hiệu thành công!");
     } catch (error) {
       console.error("Error deleting brand permanently:", error);
       toast.error("Lỗi khi khôi phục thương hiệu!");

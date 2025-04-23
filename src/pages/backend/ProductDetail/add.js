@@ -14,7 +14,7 @@ const ProductDetailAdd = () => {
   const [showProductList, setShowProductList] = useState(false);
   const [selectedColor, setSelectedColor] = useState("");
   const [size, setSize] = useState("");
-  const [stock, setStock] = useState(1);
+  const [name, setName] = useState(""); // Added name state
   const [price, setPrice] = useState("");
 
   useEffect(() => {
@@ -52,11 +52,17 @@ const ProductDetailAdd = () => {
       toast.warn("Sản phẩm chưa có màu. Không thể thêm khuyến mãi.");
       return;
     }
+
+    if (name.length === 0) {
+      toast.warn("Sản phẩm chưa có tên chi tiết. Không thể thêm.");
+      return;
+    }
+
     const productDetail = {
       product_id: productId,
       color: selectedColor,
       size,
-      stock,
+      name, // Added name to productDetail
       price,
     };
     try {
@@ -66,7 +72,7 @@ const ProductDetailAdd = () => {
         setProductName("");
         setSelectedColor("");
         setSize("");
-        setStock(1);
+        setName(""); // Reset name
         setPrice("");
       } else {
         toast.error("Có lỗi xảy ra, vui lòng thử lại!");
@@ -80,7 +86,7 @@ const ProductDetailAdd = () => {
   return (
     <div className="flex flex-row bg-gray-100 p-8">
       <div className="basis-1/2 bg-white shadow-md rounded-md p-8">
-      <Link
+        <Link
           to="/admin/productdetail"
           className="bg-red-500 text-white px-4 py-2 rounded-md"
         >
@@ -89,7 +95,7 @@ const ProductDetailAdd = () => {
         <h1 className="text-3xl font-bold mb-6 text-center">
           Thêm Chi Tiết Sản Phẩm
         </h1>
-        
+
         <form className="grid grid-cols-2 gap-6 relative">
           <div className="relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">
@@ -159,13 +165,13 @@ const ProductDetailAdd = () => {
           </div>
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Số lượng
+              Tên Chi Tiết
             </label>
             <input
               className="border rounded w-full py-2 px-3"
-              type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
