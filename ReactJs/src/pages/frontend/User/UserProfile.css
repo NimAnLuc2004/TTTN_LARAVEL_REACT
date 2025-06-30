@@ -1,0 +1,166 @@
+/* src/pages/frontend/User/UserProfile.css */
+
+/* Các style hiện có của bạn giữ nguyên */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes pulse-button {
+  0% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(236, 72, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(236, 72, 153, 0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-pulse-button {
+  animation: pulse-button 1.5s infinite;
+}
+
+.delay-1000 {
+  animation-delay: 1s;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Điều chỉnh container chính */
+  .container {
+    padding: 0 1rem;
+  }
+
+  /* Header Section: Avatar và tiêu đề */
+  .flex.items-center.mb-8 {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .w-24.h-24 {
+    width: 80px;
+    height: 80px;
+  }
+
+  .text-4xl {
+    font-size: 1.5rem; /* Giảm kích thước tiêu đề */
+  }
+
+  .text-xl {
+    font-size: 1rem; /* Giảm kích thước chữ khi loading */
+  }
+
+  /* Tabs */
+  .flex.gap-5.border-b {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pb-2.text-lg {
+    font-size: 0.9rem; /* Giảm kích thước chữ của tab */
+    padding: 0.5rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Form chỉnh sửa thông tin */
+  .space-y-6 {
+    space-y: 1rem;
+  }
+
+  .text-2xl {
+    font-size: 1.25rem; /* Giảm kích thước tiêu đề trong form */
+  }
+
+  .w-full {
+    font-size: 0.9rem; /* Giảm kích thước input */
+  }
+
+  .px-6.py-3 {
+    padding: 0.5rem 1rem; /* Giảm padding của button */
+    font-size: 0.9rem;
+  }
+
+  /* Background circles */
+  .w-96.h-96 {
+    width: 200px;
+    height: 200px;
+    top: -100px;
+    left: -100px;
+  }
+
+  .w-72.h-72 {
+    width: 150px;
+    height: 150px;
+    bottom: -50px;
+    right: -50px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Điều chỉnh thêm cho màn hình rất nhỏ */
+  .w-24.h-24 {
+    width: 60px;
+    height: 60px;
+  }
+
+  .text-4xl {
+    font-size: 1.25rem;
+  }
+
+  .text-2xl {
+    font-size: 1rem;
+  }
+
+  .pb-2.text-lg {
+    font-size: 0.8rem;
+  }
+
+  .px-6.py-3 {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  /* Điều chỉnh input và label */
+  .text-sm {
+    font-size: 0.75rem;
+  }
+
+  .peer-placeholder-shown\:top-2 {
+    top: 0.5rem;
+  }
+
+  .peer-focus\:-top-6 {
+    top: -1.5rem;
+  }
+}
